@@ -1,11 +1,13 @@
 import './App.css';
+import {BrowserRouter as Router,Route} from "react-router-dom";
 
 function App() {
   return (
-    <h1 className="text-3xl font-bold ">
-      Hello world!
-    </h1>
-
+    <Router>
+      <Route path="/" component={SignIn}/>
+      <Route path="/SignUp" component={SignUp}/>
+      <Route path="Home" component={Home}/>
+    </Router>
   );
 }
 
