@@ -6,7 +6,6 @@ import Home from './pages/Home'
 
 function App() {
   return (
-      <div>
     <Router>
       <Routes>
         <Route path="/" element={<Signin/>}/>
@@ -14,7 +13,7 @@ function App() {
         <Route path="Home" element={<Home/>}/>
       </Routes>
     </Router>
-    </div>
+ 
   );
 }
 
