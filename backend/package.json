@@ -9,12 +9,14 @@
   "author": "Pranali, Aarya",
   "license": "ISC",
   "dependencies": {
+    "apollo-server": "^3.13.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "firebase": "^10.7.1",
+    "graphql": "^16.8.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
     "nodemon": "^3.0.2"
-  },
-  "type":"module"
+  }
 }
