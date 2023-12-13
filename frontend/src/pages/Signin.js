@@ -1,6 +1,34 @@
 import React from 'react'
+import {useState} from 'react';
+import { useMutation,useQuery } from '@apollo/client';
+import { LOGIN } from '../queries/Auth';
+
 
 const Signin = () => {
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
+  
+  const[loginQuery,{loading,error}]=useQuery(LOGIN)
+
+  const handleSubmit=async (e)=>{
+    e.preventDefault();
+    try {
+      const { data }=await loginQuery({
+        variables: {
+          email: email,
+          password: password
+        }
+      });
+      console.log(data.login);
+      // Handle the response from the server
+
+      // You can perform further actions here, such as redirecting the user or storing the token in local storage
+    } catch (error) {
+      // Handle errors
+      console.error(error);
+    }
+
+  }
   return (
     <div className="flex justify-center items-center h-screen">
     <div className="rounded-lg  p-6">
@@ -17,6 +45,8 @@ const Signin = () => {
             className="appearance-none border rounded w-full py-2 px-3 bg-transparent border-0 leading-tight focus:outline-none focus:border-b-0"
             type="text"
             placeholder="Email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
             // {...register("email", { required: true })}
             // onChange={handleEmailChange}
           />
@@ -26,6 +56,8 @@ const Signin = () => {
             className="appearance-none border rounded w-full py-2 px-3 bg-transparent border-0 leading-tight focus:outline-none focus:border-b-0"
             type="password"
             placeholder="Password"
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
             // {...register("password", { required: true })}
           />
         </div>
@@ -34,7 +66,7 @@ const Signin = () => {
             // className={`flex text-white bg-sky-400 border-2 border-sky-400 font-bold py-2 px-4 rounded hover:bg-transparent hover:text-sky-400 hover:border-2  focus:outline-none focus:shadow-outline ${
             //   !isEmailValid ? "opacity-50 cursor-not-allowed" : ""
             // }`}
-            type="submit"
+            onClick={handleSubmit}
             // disabled={!isEmailValid}
           >
             Log in

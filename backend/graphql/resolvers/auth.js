@@ -24,52 +24,62 @@ const assignCookies = (req, res) => {
 
   module.exports = {
 
-    RootQuery:{login: async (_,{ email, password }) => {
+    RootMutation:{
+     
+      createUser: async (_,{ email, password },context) => {
+        try {
+          const existingUser = await User.findOne({ email });
+  
+          if (existingUser) {
+            throw new Error('User exists already.');
+          }
+          const auth = getAuth(app);
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
+          const hashedPassword = await bcrypt.hash(password, 12);
+          const userMongoDB = new User({
+            uid:user.uid,
+            email,
+            password: hashedPassword
+          });
+          console.log(context.res)
+          context.res.cookie('authToken', token, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+            secure: true,
+            sameSite: 'None'
+          }).status(201);
+    
+          const result = await userMongoDB.save();
+          // console.log(result);
+          return { userId: user.uid, token: token, tokenExpiration: 1 };
+        } catch (error) {
+          console.log(error);
+        }
+      },
+  },
+  RootQuery:{
+    login: async (_,{ email, password },context) => {
       try {
+        console.log("Inside login resolver")
         const user = await User.findOne({ email });
+        console.log(user.uid);
       if (!user) {
         throw new Error('User Not Found');
       }
+      console.log(user.uid);
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
         throw new Error('inValid password');
       }
       const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
+      console.log(user.uid);
       return { userId: user.uid, token: token, tokenExpiration: 1 };
 
       } catch (error) {
         console.log(error);
       }
-    }
-  },
-    RootMutation:{createUser: async (_,{ email, password },context) => {
-      try {
-        const existingUser = await User.findOne({ email });
-
-        if (existingUser) {
-          throw new Error('User exists already.');
-        }
-        const auth = getAuth(app);
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
-        const hashedPassword = await bcrypt.hash(password, 12);
-        const userMongoDB = new User({
-          uid:user.uid,
-          email,
-          password: hashedPassword
-        });
-        context.res.cookie('authToken', token, {
-          httpOnly: true,
-          maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-        });
-  
-        const result = await userMongoDB.save();
-        console.log(result);
-        return { userId: user.uid, token: token, tokenExpiration: 1 };
-      } catch (error) {
-        console.log(error);
-      }
-    }
+    },
   }
   };
