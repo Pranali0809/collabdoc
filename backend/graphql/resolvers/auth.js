@@ -22,18 +22,16 @@ const assignCookies = (req, res) => {
   module.exports = {
     RootMutation:{createUser: async (_,{ email, password }) => {
       try {
+        if(password==""){
+          throw new Error('User already exits');
+        }
         const auth = getAuth(app);
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        
-        // Replace the following line to generate a token and handle expiration appropriately
-        const token = jwt.sign({ userId: user.uid }, process.env.JWT_SECRET || "defaultSecretKey");
-        console.log(user.uid)
-        console.log(token);
+        const token = jwt.sign({ userId: user.uid }, process.env.JWT_SECRET)
         return { userId: user.uid, token: token, tokenExpiration: 1 };
       } catch (error) {
-        // Handle the error appropriately
-        console.log(error)
+        console.log(error);
       }
     }
   }
