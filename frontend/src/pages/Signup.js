@@ -1,13 +1,35 @@
 import React from 'react'
 import {useState} from 'react';
+import { useMutation } from '@apollo/client';
+import { CREATE_USER } from '../queries/Auth';
+
 
 const Signup = () => {
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
-  const handleSubmit=(e)=>{
+
+  const [createUserMutation, { loading, error }] = useMutation(CREATE_USER);
+
+
+  const handleSubmit=async (e)=>{
     e.preventDefault();
-    console.log(email)
-    console.log(password);
+    try {
+      // Call the mutation with the provided variables
+      const { data } = await createUserMutation({
+        variables: {
+          email: email,
+          password: password
+        }
+      });
+
+      // Handle the response from the server
+      console.log(data.createUser);
+
+      // You can perform further actions here, such as redirecting the user or storing the token in local storage
+    } catch (error) {
+      // Handle errors
+      console.error(error);
+    }
 
   }
 
@@ -68,6 +90,7 @@ const Signup = () => {
             >
               Sign Up
             </button>
+            {error && <p>Error: {error.message}</p>}
             <div className="registration__form-separator">
               <span className="registration__form-separator-text">
                 <div className="p-3 text-slate-500">or</div>
