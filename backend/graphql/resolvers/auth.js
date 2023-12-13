@@ -1,7 +1,8 @@
 const jwt=require('jsonwebtoken');
 const {app}=require('../../connections/firebaseconfig.js');
 const {createUserWithEmailAndPassword}=require("firebase/auth")
-
+const dotenv = require('dotenv');
+dotenv.config();
 const {
     getAuth
 } =require("firebase/auth");
@@ -27,7 +28,7 @@ const assignCookies = (req, res) => {
         const user = userCredential.user;
         
         // Replace the following line to generate a token and handle expiration appropriately
-        const token = jwt.sign({ userId: user.uid }, process.env.JWT_SECRET || "defaultSecretKey");
+        const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
         console.log(user.uid)
         console.log(token);
         return { userId: user.uid, token: token, tokenExpiration: 1 };
