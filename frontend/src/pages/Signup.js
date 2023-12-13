@@ -1,6 +1,16 @@
 import React from 'react'
+import {useState} from 'react';
 
 const Signup = () => {
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
+  const handleSubmit=(e)=>{
+    e.preventDefault();
+    console.log(email)
+    console.log(password);
+
+  }
+
   return (
     <div className="flex justify-center items-center h-screen">
       <div className="rounded-lg  p-6">
@@ -17,6 +27,9 @@ const Signup = () => {
               className="appearance-none border rounded w-full py-2 px-3 bg-transparent border-0 leading-tight focus:outline-none focus:border-b-0"
               type="text"
               placeholder="Email"
+              value={email}
+              onChange={(e)=>setEmail(e.target.value)}
+              
             //   {...register("email", { required: true })}
             //   onChange={(e) => {
             //     handleEmailChange(e);
@@ -28,10 +41,12 @@ const Signup = () => {
               className="appearance-none border rounded w-full py-2 px-3 bg-transparent border-0 leading-tight focus:outline-none focus:border-b-0"
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
             //   {...register("password", { required: true })}
             />
           </div>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <input
               className="appearance-none border rounded w-full py-2 px-3 bg-transparent border-0 leading-tight focus:outline-none focus:border-b-0"
               type="password"
@@ -41,13 +56,14 @@ const Signup = () => {
             //     validate: (value) => value === watch("password"),
             //   })}
             />
-          </div>
+          </div> */}
           <div className="flex flex-col space-y-4 items-center justify-center">
             <button
             //   className={`flex text-white bg-sky-400 border-2 border-sky-400 font-bold py-2 px-4 rounded hover:bg-transparent hover:text-sky-400 hover:border-2  focus:outline-none focus:shadow-outline ${
             //     !isEmailValid ? "opacity-50 cursor-not-allowed" : ""
             //   }`}
-              type="submit"
+              // type="submit"
+              onClick={handleSubmit}
             //   disabled={!isEmailValid && errors && !isPasswordStrong}
             >
               Sign Up

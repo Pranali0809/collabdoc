@@ -1,5 +1,6 @@
 const jwt=require('jsonwebtoken');
-const {app}=require('E:/project/collabdoc/backend/connections/firebaseconfig.js');
+const {app}=require('../../connections/firebaseconfig.js');
+const {createUserWithEmailAndPassword}=require("firebase/auth")
 
 const {
     getAuth
@@ -18,17 +19,22 @@ const assignCookies = (req, res) => {
       .json({ uid });
   };
 
-module.exports={
-
-    createUser: async({email,password})=>{
-    // const auth=getAuth(app);
-    // createUserWithEmailAndPassword(auth, email, password)
-    // .then((userCredential) => {
-    //   const user = userCredential.user;
-    //   return {user};
-    // })
-    // .catch((error) => {
-    // //   res.status(409).json({ error: error.message });
-    // });
+  module.exports = {
+    RootMutation:{createUser: async (_,{ email, password }) => {
+      try {
+        const auth = getAuth(app);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Replace the following line to generate a token and handle expiration appropriately
+        const token = jwt.sign({ userId: user.uid }, process.env.JWT_SECRET || "defaultSecretKey");
+        console.log(user.uid)
+        console.log(token);
+        return { userId: user.uid, token: token, tokenExpiration: 1 };
+      } catch (error) {
+        // Handle the error appropriately
+        console.log(error)
+      }
     }
-}
+  }
+  };
