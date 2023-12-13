@@ -1,8 +1,7 @@
 
 const { buildSchema } = require('graphql');
-const { gql } = require('apollo-server');
 
-module.exports= gql`
+module.exports= buildSchema(`
     type User{
         _id:ID!
         email:String!
@@ -14,10 +13,7 @@ module.exports= gql`
         tokenExpiration:Int!
     
     }
-
-    
-
-    
+ 
     type RootQuery{
         login(email:String!,password:String!):AuthData!
     }
@@ -29,5 +25,4 @@ module.exports= gql`
         query:RootQuery
         mutation:RootMutation
     }
-
-`
+`)
