@@ -49,8 +49,8 @@ const assignCookies = (req, res) => {
             maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
             secure: true,
             sameSite: 'None'
-          }).status(201);
-          console.log(context.req.headers.cookie);
+          })
+          console.log(context.res.headers.cookie);
           const result = await userMongoDB.save();
           // console.log(result);
           return { userId: user.uid, token: token, tokenExpiration: 1 };
