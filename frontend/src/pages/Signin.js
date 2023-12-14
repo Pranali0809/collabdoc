@@ -1,34 +1,42 @@
-import React from 'react'
-import {useState} from 'react';
-import { useMutation,useQuery } from '@apollo/client';
+import React from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery } from '@apollo/client';
 import { LOGIN } from '../queries/Auth';
 
-
 const Signin = () => {
-  const [email,setEmail]=useState("");
-  const [password,setPassword]=useState("");
-  
-  const[loginQuery,{loading,error}]=useQuery(LOGIN)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  // const [loginMutation,{logout,error}]=useMutation(LOGIN);
 
-  const handleSubmit=async (e)=>{
+  const { loading, error, refetch } = useQuery(LOGIN, {
+    variables: {
+      email: email,
+      password: password,
+    },
+    skip: true,
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const { data }=await loginQuery({
-        variables: {
-          email: email,
-          password: password
-        }
-      });
-      console.log(data.login);
-      // Handle the response from the server
+      await refetch();
+
+      // const {data}=await loginMutation({
+      //   variables:{
+      //     email:email,
+      //     password:password
+      //   }
+      // });
+      console.log('Refetch completed');
 
       // You can perform further actions here, such as redirecting the user or storing the token in local storage
     } catch (error) {
       // Handle errors
       console.error(error);
     }
+  };
 
-  }
   return (
     <div className="flex justify-center items-center h-screen">
     <div className="rounded-lg  p-6">

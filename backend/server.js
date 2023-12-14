@@ -5,11 +5,13 @@ const mongoose = require('mongoose');
 const { ApolloServer } = require('apollo-server-express');
 const rootResolver = require("./graphql/resolvers/index.js");
 const schema = require("./graphql/schema/index.js");
+const cookieParser = require('cookie-parser');
 
 dotenv.config();
 const port = process.env.PORT || 4200;
 const app = express();
 app.use(cors());
+app.use(cookieParser());
 
 mongoose.connect(process.env.MONGODB_URI).then(
   () => { console.log("Connected to MongoDB"); },

@@ -20,7 +20,7 @@ module.exports= buildSchema(`
     }
     type RootMutation{
         createUser(email:String!,password:String!):AuthData!
-
+        
     }
 
     schema{
