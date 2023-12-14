@@ -11,7 +11,7 @@ const CREATE_USER = gql`
 `;
 
 const LOGIN=gql`
-  query($email: String!, $password: String!) {
+  mutation($email: String!, $password: String!) {
     login(email: $email, password: $password){
       userId
       token

@@ -1,38 +1,31 @@
-import React from 'react';
 import { useState } from 'react';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation} from '@apollo/client';
 import { LOGIN } from '../queries/Auth';
 
 const Signin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const [loginMutation,{logout,error}]=useMutation(LOGIN);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [showUserCredentialsError, setShowUserCredentialsError] =
+    useState(false);
+  
+  const [loginMutation,{logout,error}]=useMutation(LOGIN);
 
-  const { loading, error, refetch } = useQuery(LOGIN, {
-    variables: {
-      email: email,
-      password: password,
-    },
-    skip: true,
-  });
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      await refetch();
+      const {data}=await loginMutation({
+        variables:{
+          email:email,
+          password:password
+        }
+      });
+      console.log(data.login);
 
-      // const {data}=await loginMutation({
-      //   variables:{
-      //     email:email,
-      //     password:password
-      //   }
-      // });
-      console.log('Refetch completed');
-
-      // You can perform further actions here, such as redirecting the user or storing the token in local storage
     } catch (error) {
-      // Handle errors
       console.error(error);
     }
   };
@@ -46,7 +39,7 @@ const Signin = () => {
       {renderUserCredentialsError()} */}
       <form
         className="w-full max-w-sm mx-auto"
-        // onSubmit={handleSubmit(onSubmit)}
+        onSubmit={()=>handleSubmit()}
       >
         <div className="mb-4">
           <input
@@ -55,8 +48,7 @@ const Signin = () => {
             placeholder="Email"
             value={email}
             onChange={(e)=>setEmail(e.target.value)}
-            // {...register("email", { required: true })}
-            // onChange={handleEmailChange}
+            
           />
         </div>
         <div className="mb-4">
@@ -66,7 +58,6 @@ const Signin = () => {
             placeholder="Password"
             value={password}
             onChange={(e)=>setPassword(e.target.value)}
-            // {...register("password", { required: true })}
           />
         </div>
         <div className="flex flex-col space-y-4 items-center justify-center">
@@ -103,7 +94,6 @@ const Signin = () => {
           <button
             className="text-blue-500 hover:text-blue-700 text-sm font-semibold focus:outline-none"
             type="button"
-            // onClick={toggleForm}
           >
             Don't have an account? Sign up
           </button>
