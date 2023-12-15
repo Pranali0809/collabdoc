@@ -42,6 +42,7 @@ const assignCookies = (req, res) => {
             email,
             password: hashedPassword
           });
+          const result = await userMongoDB.save();
           await context.res.cookie('authToken', token, {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000, 
