@@ -1,5 +1,7 @@
 import React from 'react'
 import {useState} from 'react';
+import {useDispatch} from'react-redux';
+import { setUserId } from './../state/authStates.js'
 import { useMutation } from '@apollo/client';
 import { CREATE_USER } from '../queries/Auth';
 
@@ -7,27 +9,22 @@ import { CREATE_USER } from '../queries/Auth';
 const Signup = () => {
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
-
+  const dispatch=useDispatch();
   const [createUserMutation, { loading, error }] = useMutation(CREATE_USER);
 
 
   const handleSubmit=async (e)=>{
     e.preventDefault();
     try {
-      // Call the mutation with the provided variables
       const { data } = await createUserMutation({
         variables: {
           email: email,
           password: password
         }
       });
-
-      // Handle the response from the server
+      await dispatch(setUserId(data.createUser.userId));
       console.log(data.createUser);
-
-      // You can perform further actions here, such as redirecting the user or storing the token in local storage
     } catch (error) {
-      // Handle errors
       console.error(error);
     }
 

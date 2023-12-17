@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import {useDispatch} from'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { useMutation} from '@apollo/client';
+import { setUserId } from './../state/authStates.js'
 import { LOGIN } from '../queries/Auth';
 
 const Signin = () => {
@@ -12,6 +15,8 @@ const Signin = () => {
   
   const [loginMutation,{logout,error}]=useMutation(LOGIN);
 
+  const dispatch = useDispatch();
+  const navigate=useNavigate();
   
 
   const handleSubmit = async (e) => {
@@ -23,6 +28,8 @@ const Signin = () => {
           password:password
         }
       });
+      dispatch(setUserId(data.login.userId));
+      navigate('/home');
       console.log(data.login);
 
     } catch (error) {
