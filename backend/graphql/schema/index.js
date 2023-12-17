@@ -16,10 +16,11 @@ module.exports= buildSchema(`
  
     type RootQuery{
         authData(email:String!,password:String!):AuthData!
-        login(email:String!,password:String!):AuthData!
     }
     type RootMutation{
         createUser(email:String!,password:String!):AuthData!
+        login(email:String!,password:String!):AuthData!
+
         
     }
 

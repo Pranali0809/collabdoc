@@ -2,11 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import { ApolloProvider } from '@apollo/client';
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloClient, InMemoryCache,ApolloProvider,createHttpLink } from '@apollo/client';
+
+
+const httpLink = createHttpLink({
+  uri: 'http://localhost:4200/graphql',
+  credentials: 'include',
+});
 
 const client = new ApolloClient({
-  uri: 'http://localhost:4200/graphql', 
+  link:httpLink,
   cache: new InMemoryCache(),
 });
 
@@ -18,4 +23,3 @@ root.render(
     </ApolloProvider>
   </React.StrictMode>
 );
-

@@ -29,7 +29,6 @@ const assignCookies = (req, res) => {
       createUser: async (_,{ email, password },context) => {
         try {
           const existingUser = await User.findOne({ email });
-  
           if (existingUser) {
             throw new Error('User exists already.');
           }
@@ -43,43 +42,43 @@ const assignCookies = (req, res) => {
             email,
             password: hashedPassword
           });
-          // console.log(context.res)
-          context.res.cookie('authToken', token, {
+          await context.res.cookie('authToken', token, {
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+            maxAge: 24 * 60 * 60 * 1000, 
             secure: true,
             sameSite: 'None'
-          })
-          console.log(context.res.headers.cookie);
+          }).status(201);
           const result = await userMongoDB.save();
-          // console.log(result);
           return { userId: user.uid, token: token, tokenExpiration: 1 };
         } catch (error) {
           console.log(error);
         }
       },
+      login: async (_,{ email, password },context) => {
+        try {
+          const user = await User.findOne({ email });
+        if (!user) {
+          throw new Error('User Not Found');
+        }
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          throw new Error('inValid password');
+        }
+        const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
+        await context.res.cookie('authToken', token, {
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000, 
+          secure: true,
+          sameSite: 'None'
+        }).status(201);
+        return { userId: user.uid, token: token, tokenExpiration: 1 };
+  
+        } catch (error) {
+          console.log(error);
+        }
+      }
   },
-  RootQuery:{
-    login: async (_,{ email, password },context) => {
-      try {
-        console.log("Inside login resolver")
-        const user = await User.findOne({ email });
-        console.log(user.uid);
-      if (!user) {
-        throw new Error('User Not Found');
-      }
-      console.log(user.uid);
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-        throw new Error('inValid password');
-      }
-      const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
-      console.log(user.uid);
-      return { userId: user.uid, token: token, tokenExpiration: 1 };
-
-      } catch (error) {
-        console.log(error);
-      }
-    },
-  }
+  // RootQuery:{
+    
+  // }
   };
