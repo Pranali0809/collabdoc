@@ -29,13 +29,13 @@ const {
             email,
             password: hashedPassword
           });
-          const result = await userMongoDB.save();
           await context.res.cookie('authToken', token, {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000, 
             secure: true,
             sameSite: 'None'
           }).status(201);
+          const result = await userMongoDB.save();
           return { userId: user.uid, token: token, tokenExpiration: 1 };
         } catch (error) {
           console.log(error);
