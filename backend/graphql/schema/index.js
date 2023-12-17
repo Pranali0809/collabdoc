@@ -13,6 +13,13 @@ module.exports= buildSchema(`
         tokenExpiration:Int!
     
     }
+    type Document{
+        _id:ID!
+        title:String!
+        owner:String!
+        content:String!
+        associatedUsers:[String]!
+    }
  
     type RootQuery{
         authData(email:String!,password:String!):AuthData!
@@ -20,6 +27,7 @@ module.exports= buildSchema(`
     type RootMutation{
         createUser(email:String!,password:String!):AuthData!
         login(email:String!,password:String!):AuthData!
+        createDocument(userId:String!):Document!
 
         
     }

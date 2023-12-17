@@ -9,19 +9,6 @@ const {
     getAuth
 } =require("firebase/auth");
 
-const assignCookies = (req, res) => {
-    const { uid } = req;
-    const token = jwt.sign({ id: uid }, process.env.JWT_SECRET);
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      })
-      .status(201)
-      .json({ uid });
-  };
-
   module.exports = {
 
     RootMutation:{
