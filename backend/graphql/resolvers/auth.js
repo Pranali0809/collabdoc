@@ -4,30 +4,21 @@ const cookieParser = require('cookie-parser');
 const User=require('../../models/User.js');
 const {app}=require('../../connections/firebaseconfig.js');
 const {createUserWithEmailAndPassword}=require("firebase/auth")
+const Document=require('../../models/Document.js');
 
 const {
     getAuth
 } =require("firebase/auth");
-
-const assignCookies = (req, res) => {
-    const { uid } = req;
-    const token = jwt.sign({ id: uid }, process.env.JWT_SECRET);
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      })
-      .status(201)
-      .json({ uid });
-  };
 
   module.exports = {
 
     RootMutation:{
      
       createUser: async (_,{ email, password },context) => {
+          console.log("here")
+
         try {
+          console.log("here")
           const existingUser = await User.findOne({ email });
           if (existingUser) {
             throw new Error('User exists already.');
@@ -42,13 +33,14 @@ const assignCookies = (req, res) => {
             email,
             password: hashedPassword
           });
+          const result = await userMongoDB.save();
           await context.res.cookie('authToken', token, {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000, 
             secure: true,
             sameSite: 'None'
           }).status(201);
-          const result = await userMongoDB.save();
+          // const result = await userMongoDB.save();
           return { userId: user.uid, token: token, tokenExpiration: 1 };
         } catch (error) {
           console.log(error);
@@ -76,9 +68,29 @@ const assignCookies = (req, res) => {
         } catch (error) {
           console.log(error);
         }
-      }
-  },
-  // RootQuery:{
-    
-  // }
+      },
+      createDocument: async(_,{userId},context)=>{
+        try{
+            console.log("here");
+            const document=new Document({
+                title:"Untitled",
+                owner:userId,
+                content:"",
+                associatedUsers:[userId]
+            })
+            const result = await document.save();
+            console.log(result);
+
+            return {
+                _id: result._id,
+                title: result.title,
+                owner: result.owner,
+                content: result.content,
+                associatedUsers: result.associatedUsers
+            };
+        }catch(error){
+            console.log(error);
+        }   
+    }
+  }
   };

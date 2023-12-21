@@ -5,7 +5,7 @@ import QuillSetup from '../components/QuillSetup'
 const Home = () => {
   return (
     <div className='p-4 h-screen w-screen'>
-      {/* <AddDocBut/> */}
+      <AddDocBut/>
       <QuillSetup/>
     </div>
   )
