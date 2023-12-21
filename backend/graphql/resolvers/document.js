@@ -13,7 +13,6 @@ module.exports={
                 })
                 const result = await document.save();
                 console.log(result);
-                console.log("hereeee");
 
                 return {
                     _id: result._id,

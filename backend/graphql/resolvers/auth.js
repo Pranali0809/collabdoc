@@ -14,7 +14,10 @@ const {
     RootMutation:{
      
       createUser: async (_,{ email, password },context) => {
+          console.log("here")
+
         try {
+          console.log("here")
           const existingUser = await User.findOne({ email });
           if (existingUser) {
             throw new Error('User exists already.');

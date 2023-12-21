@@ -14,7 +14,6 @@ const documentSchema=new Schema({
     
     content:{
         type: String,
-        required: true,
     },
     associatedUsers:{
         type: [String]
