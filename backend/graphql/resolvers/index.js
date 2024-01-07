@@ -1,10 +1,9 @@
-const authResolver = require('./auth');
-const documentResolver=require('./document');
+const everyResolver = require('./resolver');
+// const documentResolver=require('./document');
 
 
 const rootResolver = {
-    // ...documentResolver,
-    ...authResolver,
+    ...everyResolver,
   };
   
 module.exports=rootResolver;

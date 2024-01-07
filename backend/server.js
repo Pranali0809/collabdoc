@@ -1,14 +1,16 @@
 const express = require("express");
 const cors = require("cors");
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const sharedb = require('sharedb');
-const socketio = require('socket.io');
-const WebSocketJSONStream = require('@teamwork/websocket-json-stream');
-const { ApolloServer } = require('apollo-server-express');
+const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const sharedb = require("sharedb");
+const WebSocket = require("ws");
+const WebSocketJSONStream = require("websocket-json-stream");
+const { execute, subscribe } = require("graphql");
+const { SubscriptionServer } = require("subscriptions-transport-ws");
+const { ApolloServer } = require("apollo-server-express");
 const rootResolver = require("./graphql/resolvers/index.js");
 const schema = require("./graphql/schema/index.js");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 
 dotenv.config();
 const port = process.env.PORT || 4200;
@@ -16,83 +18,57 @@ const app = express();
 app.use(cookieParser());
 
 const corsOption = {
-    origin: ["http://localhost:3000/","http://localhost:4200/graphql","https://studio.apollographql.com"],
-    credentials: true,
-}
+  origin: [
+    "http://localhost:3000/",
+    "http://localhost:4200/graphql",
+    "https://studio.apollographql.com",
+  ],
+  credentials: true,
+};
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header("Access-Control-Allow-Origin", "*");
   next();
 });
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log("Connected to MongoDB"))
-    .catch(err => console.log("Failed to connect to MongoDB", err));
-   
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.log("Failed to connect to MongoDB", err));
 
-    app.use(cors(corsOption));
+app.use(cors(corsOption));
+const sharedbBackend = new sharedb();
 
-
+// Create an ApolloServer instance with your schema and resolvers
 const server = new ApolloServer({
-    typeDefs: schema,
-    resolvers: rootResolver,
-    context: ({ req, res }) => ({ req, res }),
+  schema,
+  resolvers: rootResolver,
+  context: ({ req, res }) => ({ req, res }), // Add any necessary context
 });
 
 const httpServer = app.listen(port, async () => {
-    await server.start();
-    server.applyMiddleware({ app, cors: corsOption });
-    console.log(`Server listening at http://localhost:${port}`);
+  await server.start();
+  server.applyMiddleware({ app, cors: corsOption });
+
+  console.log(`Server listening at http://localhost:${port}`);
 });
 
-const socketServer = socketio(httpServer);
-
-const sharedbBackend = new sharedb();
-
-socketServer.on('connection', socket => {
-    const stream = new WebSocketJSONStream(socket);
-    sharedbBackend.listen(stream);
+// WebSocket setup for ShareDB
+const wss = new WebSocket.Server({ server: httpServer });
+wss.on("connection", (ws, req) => {
+  const stream = new WebSocketJSONStream(ws);
+  sharedbBackend.listen(stream);
 });
 
-
-// const express = require("express");
-// const cors=require("cors");
-// const dotenv=require('dotenv');
-// const mongoose = require('mongoose');
-// const { ApolloServer } = require('apollo-server-express');
-// const rootResolver = require("./graphql/resolvers/index.js");
-// const schema = require("./graphql/schema/index.js");
-// const cookieParser = require('cookie-parser');
-
-// dotenv.config();
-// const port = process.env.PORT || 4200;
-// const app = express();
-// app.use(cookieParser());
-
-// const corsOption={
-//     origin: ["http://localhost:3000/","http://localhost:4200/graphql","https://studio.apollographql.com"],
-//     credentials: true,
-
-// }
-// mongoose.connect(process.env.MONGODB_URI).then(
-//   () => { console.log("Connected to MongoDB"); },
-//   (err) => { console.log("Failed to connect to MongoDB", err); }
-// );
-
-// app.use(cors(corsOption));
-// const startServer = async () => {
-//     const server = new ApolloServer({
-//       typeDefs: schema,
-//       resolvers: rootResolver,
-//       context: ({ req, res }) => ({ req, res }),
-//     });
-
-//     await server.start();
-//     server.applyMiddleware({ app,cors:corsOption });
-
-//     app.listen(port, () => {
-//       console.log(`Server listening at http://localhost:${port}`);
-//     })
-//   };
-
-// startServer();
+// Subscription setup for Apollo Server
+SubscriptionServer.create(
+  {
+    execute,
+    subscribe,
+    schema: server.schema,
+  },
+  {
+    server: httpServer,
+    path: server.graphqlPath,
+  }
+);

@@ -1,7 +1,8 @@
 
-const { buildSchema } = require('graphql');
+const rootResolver= require('../resolvers/index.js');
+const {makeExecutableSchema}=require('graphql-tools')
 
-module.exports= buildSchema(`
+const typeDefs=`
     type User{
         _id:ID!
         email:String!
@@ -21,19 +22,28 @@ module.exports= buildSchema(`
         associatedUsers:[String]!
     }
  
-    type RootQuery{
+    type Query{
         authData(email:String!,password:String!):AuthData!
     }
-    type RootMutation{
+    type Mutation{
         createUser(email:String!,password:String!):AuthData!
         login(email:String!,password:String!):AuthData!
         createDocument(userId:String!):Document!
+        updateDocument(content: String!): Document
 
         
     }
 
-    schema{
-        query:RootQuery
-        mutation:RootMutation
+    type Subscription{
+        documentChanged(content:String!):Document!
     }
-`)
+
+    
+`;
+
+const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers:rootResolver,
+  });
+  
+  module.exports = schema;

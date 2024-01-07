@@ -1,18 +1,23 @@
 const jwt=require('jsonwebtoken');
 const bcrypt=require('bcrypt');
 const cookieParser = require('cookie-parser');
-const User=require('../../models/User.js');
+// const {PubSub}=require('apollo-server-express');
+const {PubSub}=require('graphql-subscriptions')
+ const User=require('../../models/User.js');
 const {app}=require('../../connections/firebaseconfig.js');
-const {createUserWithEmailAndPassword}=require("firebase/auth")
+const {createUserWithEmailAndPassword}=require("firebase/auth");
 const Document=require('../../models/Document.js');
+const ShareDB = require('sharedb');
 
 const {
     getAuth
 } =require("firebase/auth");
-
+const shareDB = new ShareDB();
+const pubsub = new PubSub();
+// const pubsub = new ApolloServer({}).createPubSub();
   module.exports = {
 
-    RootMutation:{
+    Mutation:{
      
       createUser: async (_,{ email, password },context) => {
           console.log("here")
@@ -91,6 +96,23 @@ const {
         }catch(error){
             console.log(error);
         }   
-    }
+    },
+    
+    updateDocument: (_, { content }) => {
+      // Update the document content
+      const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
+      // doc.create({ content: '' });
+      doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
+
+
+      pubsub.publish('DOCUMENT_CHANGED', { documentChanged: { content } });
+
+    },
+      
+  },
+  Subscription:{
+    documentChanged: {
+      subscribe: () => pubsub.asyncIterator(['DOCUMENT_CHANGED', '657ede539e01bb0d81685798']),
+      },
   }
   };

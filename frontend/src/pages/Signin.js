@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {useDispatch} from'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useMutation} from '@apollo/client';
+import { useMutation,useSubscription} from '@apollo/client';
 import { setUserId } from './../state/authStates.js'
 import { LOGIN } from '../queries/Auth';
 
@@ -29,6 +29,10 @@ const Signin = () => {
         }
       });
       dispatch(setUserId(data.login.userId));
+      // const { data: documentData, loading, error } = useSubscription(DOCUMENT_CHANGED_SUBSCRIPTION, {
+      //   variables: { docId: '657ede539e01bb0d81685798' }, // Replace with the actual document ID
+      //   skip: !userId, // Skip the subscription if userId is not available
+      // });
       navigate('/home');
       console.log(data.login);
 
