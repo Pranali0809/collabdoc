@@ -29,13 +29,13 @@ const typeDefs=`
         createUser(email:String!,password:String!):AuthData!
         login(email:String!,password:String!):AuthData!
         createDocument(userId:String!):Document!
-        updateDocument(content: String!): Document
+        updateDocument(documentId:String!,content: String!): Document
 
         
     }
 
     type Subscription{
-        documentChanged(content:String!):Document!
+        documentChanged(documentId:String!,userId:String!):Document!
     }
 
     

@@ -98,21 +98,23 @@ const pubsub = new PubSub();
         }   
     },
     
-    updateDocument: (_, { content }) => {
+    updateDocument: (_, { documentId,content }) => {
       // Update the document content
-      const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
+      // const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
       // doc.create({ content: '' });
-      doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
-
-
-      pubsub.publish('DOCUMENT_CHANGED', { documentChanged: { content } });
-
+      // doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
+      pubsub.publish('DOCUMENT_CHANGED', { documentChanged: { documentId, content } });
+      console.log("inside update doc res")
     },
       
   },
   Subscription:{
     documentChanged: {
-      subscribe: () => pubsub.asyncIterator(['DOCUMENT_CHANGED', '657ede539e01bb0d81685798']),
-      },
+      subscribe: (_,{documentId,userId}) => 
+      {
+        console.log("inside subs doc res")
+        pubsub.asyncIterator(['DOCUMENT_CHANGED', documentId,userId])
+      }
+    },
   }
   };

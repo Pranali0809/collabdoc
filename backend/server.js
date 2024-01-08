@@ -55,10 +55,10 @@ const httpServer = app.listen(port, async () => {
 
 // WebSocket setup for ShareDB
 const wss = new WebSocket.Server({ server: httpServer });
-wss.on("connection", (ws, req) => {
-  const stream = new WebSocketJSONStream(ws);
-  sharedbBackend.listen(stream);
-});
+// wss.on("connection", (ws, req) => {
+//   const stream = new WebSocketJSONStream(ws);
+//   sharedbBackend.listen(stream);
+// });
 
 // Subscription setup for Apollo Server
 SubscriptionServer.create(
@@ -68,7 +68,7 @@ SubscriptionServer.create(
     schema: server.schema,
   },
   {
-    server: httpServer,
+    server: wss,
     path: server.graphqlPath,
   }
 );
