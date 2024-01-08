@@ -13,8 +13,8 @@ mutation($userId: String!){
 }
 `;
 const DOCUMENT_CHANGED_SUBSCRIPTION = gql`
-  subscription DocumentChanged($docId: String!) {
-    documentChanged(docId: $docId) {
+  subscription DocumentChanged($userId: String!) {
+    documentChanged(documentId:"657ede539e01bb0d81685798",userId: $userId) {
       _id
       title
       owner
