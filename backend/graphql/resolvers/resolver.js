@@ -110,11 +110,8 @@ const pubsub = new PubSub();
   },
   Subscription:{
     documentChanged: {
-      subscribe: (_,{documentId,userId}) => 
-      {
-        console.log("inside subs doc res")
-        pubsub.asyncIterator(['DOCUMENT_CHANGED', documentId,userId])
-      }
+      subscribe: (_,{documentId,userId}) => pubsub.asyncIterator(['DOCUMENT_CHANGED', documentId,userId])
+      
     },
   }
   };

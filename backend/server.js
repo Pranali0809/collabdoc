@@ -1,74 +1,87 @@
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
+const {makeExecutableSchema}=require('@graphql-tools/schema')
+const {gql}=require('graphql-tag');
+const {createServer}=require("http");
+const {useServer}=require("graphql-ws/lib/use/ws");
+const { ApolloServer } =require('@apollo/server');
+const { ApolloServerPluginDrainHttpServer } =require('@apollo/server/plugin/drainHttpServer');
+const { expressMiddleware } =require("@apollo/server/express4");
+const { PubSub } = require('graphql-subscriptions');
+const {bodyParser} =require('body-parser');
+const cookieParser=require('cookie-parser');
+// Import your existing ShareDB and other dependencies
+const {WebSocketServer} = require("ws");
 const mongoose = require("mongoose");
-const sharedb = require("sharedb");
-const WebSocket = require("ws");
-const WebSocketJSONStream = require("websocket-json-stream");
-const { execute, subscribe } = require("graphql");
-const { SubscriptionServer } = require("subscriptions-transport-ws");
-const { ApolloServer } = require("apollo-server-express");
-const rootResolver = require("./graphql/resolvers/index.js");
-const schema = require("./graphql/schema/index.js");
-const cookieParser = require("cookie-parser");
+const dotenv = require("dotenv");
+const typeDefs= require('./graphql/schema/index.js');
 
-dotenv.config();
-const port = process.env.PORT || 4200;
-const app = express();
-app.use(cookieParser());
+const rootResolver= require('./graphql/resolvers/index.js');
 
-const corsOption = {
-  origin: [
-    "http://localhost:3000/",
-    "http://localhost:4200/graphql",
-    "https://studio.apollographql.com",
-  ],
-  credentials: true,
-};
+(async function () {
+  dotenv.config();
+  const port = process.env.PORT || 4200;
+  const pubsub = new PubSub(); // Publish and Subscribe, Publish -> everyone gets to hear it
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  next();
-});
+  const app = express();
+  app.use(cookieParser());
+  const httpServer = createServer(app);
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.log("Failed to connect to MongoDB", err));
+  const corsOption = {
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:4200/graphql",
+      "https://studio.apollographql.com",
+    ],
+    credentials: true,
+  };
 
-app.use(cors(corsOption));
-const sharedbBackend = new sharedb();
+  // app.use((req, res, next) => {
+  //   res.header("Access-Control-Allow-Origin", "*");
+  //   next();
+  // });
 
-// Create an ApolloServer instance with your schema and resolvers
-const server = new ApolloServer({
-  schema,
-  resolvers: rootResolver,
-  context: ({ req, res }) => ({ req, res }), // Add any necessary context
-});
 
-const httpServer = app.listen(port, async () => {
+const schema = makeExecutableSchema({typeDefs, rootResolver});
+
+  mongoose
+    .connect(process.env.MONGODB_URI)
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((err) => console.log("Failed to connect to MongoDB", err));
+
+  // app.use(cors(corsOption));
+  // const sharedbBackend = new sharedb();
+
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: "/graphql", // localhost:3000/graphql
+  });
+
+  const serverCleanup = useServer({ schema }, wsServer); // dispose
+  const server = new ApolloServer({
+    schema,
+    
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
+  });
+
   await server.start();
-  server.applyMiddleware({ app, cors: corsOption });
 
-  console.log(`Server listening at http://localhost:${port}`);
-});
+  // apply middlewares (cors, expressmiddlewares)
+  app.use('/graphql', cors(), expressMiddleware(server));
 
-// WebSocket setup for ShareDB
-const wss = new WebSocket.Server({ server: httpServer });
-// wss.on("connection", (ws, req) => {
-//   const stream = new WebSocketJSONStream(ws);
-//   sharedbBackend.listen(stream);
-// });
-
-// Subscription setup for Apollo Server
-SubscriptionServer.create(
-  {
-    execute,
-    subscribe,
-    schema: server.schema,
-  },
-  {
-    server: wss,
-    path: server.graphqlPath,
-  }
-);
+  // http server start
+  httpServer.listen(4200, () => {
+    console.log("Server running on http://localhost:" + "4200" + "/graphql");
+  });
+})();
