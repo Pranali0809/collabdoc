@@ -2,13 +2,14 @@ const express = require("express");
 const cors = require("cors");
 const {makeExecutableSchema}=require('@graphql-tools/schema')
 const {gql}=require('graphql-tag');
+const { startStandaloneServer } =require('@apollo/server/standalone');
 const {createServer}=require("http");
 const {useServer}=require("graphql-ws/lib/use/ws");
 const { ApolloServer } =require('@apollo/server');
 const { ApolloServerPluginDrainHttpServer } =require('@apollo/server/plugin/drainHttpServer');
 const { expressMiddleware } =require("@apollo/server/express4");
 const { PubSub } = require('graphql-subscriptions');
-const {bodyParser} =require('body-parser');
+const bodyParser =require('body-parser');
 const cookieParser=require('cookie-parser');
 // Import your existing ShareDB and other dependencies
 const {WebSocketServer} = require("ws");
@@ -36,10 +37,10 @@ const rootResolver= require('./graphql/resolvers/index.js');
     credentials: true,
   };
 
-  // app.use((req, res, next) => {
-  //   res.header("Access-Control-Allow-Origin", "*");
-  //   next();
-  // });
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    next();
+  });
 
 
 const schema = makeExecutableSchema({typeDefs, rootResolver});
@@ -49,17 +50,18 @@ const schema = makeExecutableSchema({typeDefs, rootResolver});
     .then(() => console.log("Connected to MongoDB"))
     .catch((err) => console.log("Failed to connect to MongoDB", err));
 
-  // app.use(cors(corsOption));
-  // const sharedbBackend = new sharedb();
-
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: "/graphql", // localhost:3000/graphql
   });
 
   const serverCleanup = useServer({ schema }, wsServer); // dispose
+
+  
   const server = new ApolloServer({
-    schema,
+    typeDefs,
+    resolvers:rootResolver,
+    // schema
     
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
@@ -72,15 +74,18 @@ const schema = makeExecutableSchema({typeDefs, rootResolver});
           };
         },
       },
-    ],
+    ]
+
   });
 
-  await server.start();
+ await server.start()
 
-  // apply middlewares (cors, expressmiddlewares)
-  app.use('/graphql', cors(), expressMiddleware(server));
+  app.use('/graphql', cors(),bodyParser.json(),  expressMiddleware(server, {
+    context: async ({ req,res }) => {
+      return ({req,res});
+    },
+  }),);
 
-  // http server start
   httpServer.listen(4200, () => {
     console.log("Server running on http://localhost:" + "4200" + "/graphql");
   });

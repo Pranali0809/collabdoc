@@ -35,15 +35,11 @@ const typeDefs=`
     }
 
     type Subscription{
-        documentChanged(documentId:String!,userId:String!):Document!
+        documentChanged:Document
     }
 
     
 `;
 
-// const schema = makeExecutableSchema({
-//     typeDefs,
-//     resolvers:rootResolver,
-//   });
-  
+
   module.exports = typeDefs;

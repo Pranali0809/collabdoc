@@ -105,12 +105,13 @@ const pubsub = new PubSub();
       // doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
       pubsub.publish('DOCUMENT_CHANGED', { documentChanged: { documentId, content } });
       console.log("inside update doc res")
+      return { documentId, content };
     },
       
   },
   Subscription:{
     documentChanged: {
-      subscribe: (_,{documentId,userId}) => pubsub.asyncIterator(['DOCUMENT_CHANGED', documentId,userId])
+      subscribe: () => pubsub.asyncIterator(['DOCUMENT_CHANGED'])
       
     },
   }
