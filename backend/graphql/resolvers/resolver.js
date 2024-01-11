@@ -1,7 +1,5 @@
 const jwt=require('jsonwebtoken');
 const bcrypt=require('bcrypt');
-const cookieParser = require('cookie-parser');
-// const {PubSub}=require('apollo-server-express');
 const {PubSub}=require('graphql-subscriptions')
  const User=require('../../models/User.js');
 const {app}=require('../../connections/firebaseconfig.js');
@@ -14,46 +12,45 @@ const {
 } =require("firebase/auth");
 const shareDB = new ShareDB();
 const pubsub = new PubSub();
-// const pubsub = new ApolloServer({}).createPubSub();
-  module.exports = {
+const everyResolver = {
 
-    Mutation:{
+  Mutation:
+  {
      
-      createUser: async (_,{ email, password },context) => {
-          console.log("here")
+    createUser: async (_,{ email, password },context) => {
+      console.log("here")
 
-        try {
-          console.log("here")
-          const existingUser = await User.findOne({ email });
-          if (existingUser) {
-            throw new Error('User exists already.');
-          }
-          const auth = getAuth(app);
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-          const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
-          const hashedPassword = await bcrypt.hash(password, 12);
-          const userMongoDB = new User({
-            uid:user.uid,
-            email,
-            password: hashedPassword
-          });
-          const result = await userMongoDB.save();
-          await context.res.cookie('authToken', token, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, 
-            secure: true,
-            sameSite: 'None'
-          }).status(201);
-          // const result = await userMongoDB.save();
-          return { userId: user.uid, token: token, tokenExpiration: 1 };
-        } catch (error) {
-          console.log(error);
+      try {
+        console.log("here")
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          throw new Error('User exists already.');
         }
-      },
-      login: async (_,{ email, password },context) => {
-        try {
-          const user = await User.findOne({ email });
+        const auth = getAuth(app);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const userMongoDB = new User({
+          uid:user.uid,
+          email,
+          password: hashedPassword
+        });
+        const result = await userMongoDB.save();
+        await context.res.cookie('authToken', token, {
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000, 
+          secure: true,
+          sameSite: 'None'
+        }).status(201);
+        return { userId: user.uid, token: token, tokenExpiration: 1 };
+      } catch (error) {
+          console.log(error);
+      }
+    },
+    login: async (_,{ email, password },context) => {
+      try {
+        const user = await User.findOne({ email });
         if (!user) {
           throw new Error('User Not Found');
         }
@@ -70,51 +67,51 @@ const pubsub = new PubSub();
         }).status(201);
         return { userId: user.uid, token: token, tokenExpiration: 1 };
   
-        } catch (error) {
+      } catch (error) {
           console.log(error);
         }
       },
-      createDocument: async(_,{userId},context)=>{
-        try{
-            console.log("here");
-            const document=new Document({
-                title:"Untitled",
-                owner:userId,
-                content:"",
-                associatedUsers:[userId]
-            })
-            const result = await document.save();
-            console.log(result);
+    createDocument: async(_,{userId},context)=>{
+      try{
+        console.log("here");
+        const document=new Document({
+          title:"Untitled",
+          owner:userId,
+          content:"",
+          associatedUsers:[userId]
+        })
+        const result = await document.save();
+        console.log(result);
 
-            return {
-                _id: result._id,
-                title: result.title,
-                owner: result.owner,
-                content: result.content,
-                associatedUsers: result.associatedUsers
-            };
+        return {
+          _id: result._id,
+          title: result.title,
+          owner: result.owner,
+          content: result.content,
+          associatedUsers: result.associatedUsers
+        };
         }catch(error){
             console.log(error);
         }   
-    },
+     },
     
-    updateDocument: (_, { documentId,content }) => {
+    updateDocument: (_, {documentId,content}) => {
       // Update the document content
       // const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
       // doc.create({ content: '' });
       // doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
-      pubsub.publish('DOCUMENT_CHANGED', { documentChanged: { documentId, content } });
+      pubsub.publish('DOCUMENT_CHANGED', { documentChanged: documentId, content });
       console.log("inside update doc res")
+      return {_id:documentId,content:content};
+     },
+
     },
-      
-  },
-  Subscription:{
-    documentChanged: {
-      subscribe: (_,{documentId,userId}) => 
-      {
-        console.log("inside subs doc res")
-        pubsub.asyncIterator(['DOCUMENT_CHANGED', documentId,userId])
+    Subscription: 
+    {
+      documentChanged: {
+          subscribe: () => pubsub.asyncIterator(['DOCUMENT_CHANGED'])
       }
-    },
-  }
+    }
   };
+
+  module.exports=everyResolver;
