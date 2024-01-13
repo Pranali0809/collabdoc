@@ -3,10 +3,18 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import QuillCursors from "quill-cursors";
 import AddDocBut from '../components/AddDocBut';
+import ShareDB from "sharedb/lib/client";
+import ReconnectingWebSocket from "reconnectingwebsocket"
 
 const QuillSetup = () => {
   const [documentContent, setDocumentContent] = useState('');
   const quillRef = useRef();
+
+  ShareDB.types.register(require('rich-text').type);
+  var shareDBSocket = new ReconnectingWebSocket( 'ws' + '://' + window.location.host + '/sharedb');
+  var shareDBConnection = new ShareDB.Connection(shareDBSocket);
+
+  var doc = shareDBConnection.get('documents', 'foobar');
 
   useEffect(() => {
     initializeQuillEditor();
@@ -22,24 +30,50 @@ const QuillSetup = () => {
     quillRef.current = new Quill(`#editor`);
   };
 
-  const handleAddDocument = () => {
-    // Save the content of the current document if needed
-    const currentContent = quillRef.current.root.innerHTML;
-    console.log("Current Content:", currentContent);
+  // const handleAddDocument = () => {
+  //   // Save the content of the current document if needed
+  //   const currentContent = quillRef.current.root.innerHTML;
+  //   console.log("Current Content:", currentContent);
 
-    // Reset the content of the current document
-    setDocumentContent('');
+  //   // Reset the content of the current document
+  //   setDocumentContent('');
 
-    // Optionally, you can clear the content of the Quill editor
-    quillRef.current.root.innerHTML = '';
+  //   // Optionally, you can clear the content of the Quill editor
+  //   quillRef.current.root.innerHTML = '';
 
-    // You can now start typing in the new document
-  };
+  //   // You can now start typing in the new document
+  // };
+
+  doc.subscribe((err) => {
+    if (err) throw err;
+
+    if (!doc.type) {
+      doc.create([{ insert: '\n' }], 'rich-text');
+    }
+
+    quillRef.current.setContents(doc.data);
+
+    quillRef.current.on('text-change', (delta, oldDelta, source) => {
+      if (source === 'user') {
+        doc.submitOp(delta, { source: quillRef.current }, (err) => {
+          if (err) console.error('Submit OP returned an error:', err);
+        });
+      }
+    });
+
+    doc.on('op', (op, source) => {
+      if (source !== quillRef.current) {
+        quillRef.current.updateContents(op);
+      }
+    });
+
+  });
+
 
   return (
     <div>
       <div id={`editor`} style={{ height: '400px', border: '2px solid purple' }} dangerouslySetInnerHTML={{ __html: documentContent }} />
-      <AddDocBut addDocument={handleAddDocument} />
+      {/* <AddDocBut addDocument={handleAddDocument} /> */}
     </div>
   );
 };

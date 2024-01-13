@@ -14,27 +14,27 @@ const httpLink = createHttpLink({
   credentials: 'include',
 });
 
-const wsLink=new WebSocketLink({
-  uri:'ws://localhost:4200/graphql',
-  options:{
-    reconnect:true
-  }
-})
+// const wsLink=new WebSocketLink({
+//   uri:'ws://localhost:4200/graphql',
+//   options:{
+//     reconnect:true
+//   }
+// })
 
-const splitLink = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query);
-    return (
-      definition.kind === 'OperationDefinition' &&
-      definition.operation === 'subscription'
-    );
-  },
-  wsLink,
-  httpLink
-);
+// const splitLink = split(
+//   ({ query }) => {
+//     const definition = getMainDefinition(query);
+//     return (
+//       definition.kind === 'OperationDefinition' &&
+//       definition.operation === 'subscription'
+//     );
+//   },
+//   wsLink,
+//   httpLink
+// );
 
 const client = new ApolloClient({
-  link: splitLink,
+  link: httpLink,
   cache: new InMemoryCache(),
 });
 
