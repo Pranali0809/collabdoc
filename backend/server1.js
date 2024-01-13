@@ -8,7 +8,7 @@ const { ApolloServer } =require('@apollo/server');
 const { ApolloServerPluginDrainHttpServer } =require('@apollo/server/plugin/drainHttpServer');
 const { expressMiddleware } =require("@apollo/server/express4");
 const { PubSub } = require('graphql-subscriptions');
-const {bodyParser} =require('body-parser');
+const bodyParser =require('body-parser');
 // Import your existing ShareDB and other dependencies
 const {WebSocketServer} = require("ws");
 
@@ -29,12 +29,22 @@ const {WebSocketServer} = require("ws");
             placeholder: Boolean
         }
         
+        type Document{
+            _id:ID!
+            title:String
+            owner:String
+            content:String!
+            associatedUsers:[String]
+        }
+
         type Mutation {
             createNewsEvent(title: String, description: String) : NewsEvent
+            updateDocument(documentId:String!,content: String!): Document
         }
 
         type Subscription {
             newsFeed: NewsEvent
+            documentChanged(documentId:String!):Document
         }
     `
 
@@ -56,12 +66,21 @@ const {WebSocketServer} = require("ws");
 
                 // Create something : EVENT_CREATED
                 // Subscribe to something: EVENT_CREATED
-                // return args;
-            }
+                return {title:args.title,description:args.description};
+            },
+            updateDocument: (_, {documentId,content}) => {
+                // Update the document content
+                // const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
+                // doc.create({ content: '' });
+                // doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
+                pubsub.publish('DOCUMENT_CHANGED', { documentChanged: documentId });
+                console.log("inside update doc res")
+                return {_id:documentId,content:content};
+              },
         },
         Subscription: {
-            newsFeed: {
-                subscribe: () => pubsub.asyncIterator(['EVENT_CREATED'])
+            documentChanged: {
+                subscribe: () => pubsub.asyncIterator(['DOCUMENT_CHANGED'])
             }
         }
     }
@@ -97,7 +116,7 @@ const {WebSocketServer} = require("ws");
     await server.start();
 
     // apply middlewares (cors, expressmiddlewares)
-    app.use('/graphql', cors(), expressMiddleware(server));
+    app.use('/graphql', cors(),bodyParser.json(), expressMiddleware(server));
 
     // http server start
     httpServer.listen(4200, () => {

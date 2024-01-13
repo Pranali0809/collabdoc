@@ -11,6 +11,7 @@
   "dependencies": {
     "@apollo/server": "^4.10.0",
     "@graphql-tools/schema": "^10.0.2",
+    "@teamwork/websocket-json-stream": "^2.0.0",
     "apollo-server": "^3.13.0",
     "apollo-server-express": "^3.13.0",
     "bcrypt": "^5.1.1",
@@ -29,7 +30,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
     "nodemon": "^3.0.2",
+    "rich-text": "^4.1.0",
     "sharedb": "^4.1.2",
+    "sharedb-mongo": "^4.1.0",
     "socket.io": "^4.7.2",
     "subscriptions-transport-ws": "^0.11.0",
     "websocket-json-stream": "^0.0.3",

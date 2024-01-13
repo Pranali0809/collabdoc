@@ -2,30 +2,27 @@ const express = require("express");
 const cors = require("cors");
 const {makeExecutableSchema}=require('@graphql-tools/schema')
 const {gql}=require('graphql-tag');
-const { startStandaloneServer } =require('@apollo/server/standalone');
 const {createServer}=require("http");
 const {useServer}=require("graphql-ws/lib/use/ws");
 const { ApolloServer } =require('@apollo/server');
 const { ApolloServerPluginDrainHttpServer } =require('@apollo/server/plugin/drainHttpServer');
 const { expressMiddleware } =require("@apollo/server/express4");
-const { PubSub } = require('graphql-subscriptions');
 const bodyParser =require('body-parser');
 const cookieParser=require('cookie-parser');
-// Import your existing ShareDB and other dependencies
+const ShareDB = require('sharedb');
+const { MongoClient } = require('mongodb');
 const {WebSocketServer} = require("ws");
 const mongoose = require("mongoose");
+const shareDBMongo = require('sharedb-mongo');
 const dotenv = require("dotenv");
-const typeDefs= require('./graphql/schema/index.js');
-
-const rootResolver= require('./graphql/resolvers/index.js');
+const schema=require('./graphql/schema/index.js')
+const WebSocketJSONStream = require('@teamwork/websocket-json-stream')
+dotenv.config();
+const port = process.env.PORT || 4200;
 
 (async function () {
-  dotenv.config();
-  const port = process.env.PORT || 4200;
-  const pubsub = new PubSub(); // Publish and Subscribe, Publish -> everyone gets to hear it
 
   const app = express();
-  app.use(cookieParser());
   const httpServer = createServer(app);
 
   const corsOption = {
@@ -33,6 +30,7 @@ const rootResolver= require('./graphql/resolvers/index.js');
       "http://localhost:3000",
       "http://localhost:4200/graphql",
       "https://studio.apollographql.com",
+      "ws://localhost:4200/graphql"
     ],
     credentials: true,
   };
@@ -43,26 +41,24 @@ const rootResolver= require('./graphql/resolvers/index.js');
   });
 
 
-const schema = makeExecutableSchema({typeDefs, rootResolver});
-
-  mongoose
-    .connect(process.env.MONGODB_URI)
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => console.log("Failed to connect to MongoDB", err));
+ShareDB.types.register(require('rich-text').type);
+const backendShareDb = new ShareDB({
+  db: require('sharedb-mongo')(process.env.MONGODB_URI)
+});;
 
   const wsServer = new WebSocketServer({
     server: httpServer,
-    path: "/graphql", // localhost:3000/graphql
+    path: "/graphql", 
   });
-
-  const serverCleanup = useServer({ schema }, wsServer); // dispose
-
+  wsServer.on('connection', (webSocket) => {
+    const stream = new WebSocketJSONStream(webSocket)
+    backendShareDb.listen(stream)
+  })
   
+  const serverCleanup = useServer({ schema }, wsServer);
+
   const server = new ApolloServer({
-    typeDefs,
-    resolvers:rootResolver,
-    // schema
-    
+    schema,
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
       {
@@ -74,19 +70,16 @@ const schema = makeExecutableSchema({typeDefs, rootResolver});
           };
         },
       },
-    ]
-
+    ],
   });
 
- await server.start()
+  await server.start();
 
-  app.use('/graphql', cors(),bodyParser.json(),  expressMiddleware(server, {
-    context: async ({ req,res }) => {
-      return ({req,res});
-    },
-  }),);
+  app.use('/graphql', cors(),bodyParser.json(),cookieParser(),  expressMiddleware(server, {
+    context: async ({ req,res }) => ({ req,res }),
+  }));
 
-  httpServer.listen(4200, () => {
+  httpServer.listen(port, () => {
     console.log("Server running on http://localhost:" + "4200" + "/graphql");
   });
 })();
