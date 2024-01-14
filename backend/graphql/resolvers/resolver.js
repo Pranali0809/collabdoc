@@ -95,14 +95,16 @@ const everyResolver = {
         }   
      },
     
-    updateDocument: (_, {documentId,content}) => {
+    updateDocument: (_parent,args) => {
       // Update the document content
       // const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
       // doc.create({ content: '' });
       // doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
-      pubsub.publish('DOCUMENT_CHANGED', { documentChanged: documentId, content });
+      const _id=args.documentId;
+      const content=args.content;
+      pubsub.publish('DOCUMENT_CHANGED', { documentChanged: {_id,content} });
       console.log("inside update doc res")
-      return {_id:documentId,content:content};
+      return {_id:_id,content:content};
      },
 
     },

@@ -11,10 +11,10 @@ const QuillSetup = () => {
   const quillRef = useRef();
 
   ShareDB.types.register(require('rich-text').type);
-  var shareDBSocket = new ReconnectingWebSocket( 'ws' + '://' + window.location.host + '/sharedb');
+  var shareDBSocket = new ReconnectingWebSocket( 'ws' + '://' + 'localhost:4200' + '/graphql');
   var shareDBConnection = new ShareDB.Connection(shareDBSocket);
 
-  var doc = shareDBConnection.get('documents', 'foobar');
+  var doc = shareDBConnection.get('documents', '1');
 
   useEffect(() => {
     initializeQuillEditor();

@@ -27,14 +27,14 @@ const typeDefs=gql`
     }
     
     type Subscription{
-        documentChanged(documentId:String!):Document
+        documentChanged(documentId:String!):Document!
     }
     
     type Mutation{
         createUser(email:String!,password:String!):AuthData!
         login(email:String!,password:String!):AuthData!
         createDocument(userId:String!):Document!
-        updateDocument(documentId:String!,content: String!): Document  
+        updateDocument(documentId:String!,content: String!): Document!
     }
 
     
