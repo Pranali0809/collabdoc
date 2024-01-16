@@ -19,6 +19,7 @@
     "react-redux": "^9.0.4",
     "react-router-dom": "^6.20.1",
     "react-scripts": "5.0.1",
+    "reconnecting-websocket": "^4.4.0",
     "reconnectingwebsocket": "^1.0.0",
     "rich-text": "^4.1.0",
     "sharedb": "^4.1.2",

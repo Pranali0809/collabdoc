@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const {makeExecutableSchema}=require('@graphql-tools/schema')
+const {gql}=require('graphql-tag');
 const {createServer}=require("http");
 const {useServer}=require("graphql-ws/lib/use/ws");
 const { ApolloServer } =require('@apollo/server');
@@ -7,10 +9,14 @@ const { ApolloServerPluginDrainHttpServer } =require('@apollo/server/plugin/drai
 const { expressMiddleware } =require("@apollo/server/express4");
 const bodyParser =require('body-parser');
 const cookieParser=require('cookie-parser');
+const ShareDB = require('sharedb');
+const { MongoClient } = require('mongodb');
 const {WebSocketServer} = require("ws");
 const mongoose = require("mongoose");
+const shareDBMongo = require('sharedb-mongo');
 const dotenv = require("dotenv");
 const schema=require('./graphql/schema/index.js')
+const WebSocketJSONStream = require('@teamwork/websocket-json-stream')
 dotenv.config();
 const port = process.env.PORT || 4200;
 
@@ -35,25 +41,24 @@ const port = process.env.PORT || 4200;
   });
 
 
-  mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.log("Failed to connect to MongoDB", err));
-  
-  app.use(cors(corsOption));
-  // const sharedbBackend = new sharedb();
+ShareDB.types.register(require('rich-text').type);
+const backendShareDb = new ShareDB({
+  db: require('sharedb-mongo')(process.env.MONGODB_URI)
+});;
 
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: "/graphql", 
   });
-
+  wsServer.on('connection', (webSocket) => {
+    const stream = new WebSocketJSONStream(webSocket)
+    backendShareDb.listen(stream)
+  })
+  
   const serverCleanup = useServer({ schema }, wsServer);
 
   const server = new ApolloServer({
     schema,
-
-
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
       {

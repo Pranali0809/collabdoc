@@ -27,7 +27,7 @@ const typeDefs=gql`
     }
     
     type Subscription{
-        documentChanged(documentId:String!):Document!
+        documentChanged(documentId:String!,userId:String):Document
     }
     
     type Mutation{
