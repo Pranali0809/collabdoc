@@ -1,16 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
-import QuillCursors from "quill-cursors";
-import AddDocBut from '../components/AddDocBut';
-import ShareDB from "sharedb/lib/client";
-import ReconnectingWebSocket from "reconnecting-websocket";
 import shareDBConnection from '../connections/shareDBConn';
 
 const QuillSetup = () => {
   const [documentContent, setDocumentContent] = useState('');
   const quillRef = useRef();
-  const doc = shareDBConnection.get('examples', 'test-doc3');
+  const docId = 'test-doc4';
+  const doc = shareDBConnection.get('examples', docId);
 
   useEffect(() => {
     const initializeQuillEditor = () => {
@@ -19,9 +16,9 @@ const QuillSetup = () => {
         readOnly: false,
         theme: 'snow',
       };
-  
-      quillRef.current = new Quill(`#editor`);
-  
+
+      quillRef.current = new Quill('#editor');
+
       quillRef.current.on('text-change', (delta, oldDelta, source) => {
         if (source === 'user') {
           // Submit the delta to ShareDB when there is a change
@@ -31,42 +28,14 @@ const QuillSetup = () => {
         }
       });
     };
+
     initializeQuillEditor();
 
     return () => {
       // Cleanup when component unmounts
       quillRef.current = null;
     };
-  }, []);
-
-  
-
-  // doc.subscribe((err) => {
-  //   if (err) throw err;
-
-  //   // if (!doc.type) {
-  //   //   doc.create([{ insert: '\n' }], 'rich-text');
-  //   // }
-  //   // let delta = doc.data;
-  //   // console.log(delta);
-  //   // quillRef.current.setContents(delta);
-  //   // // quillRef.current.setContents(doc.data);
-  //   // document.querySelector("#editor").innerHTML = quillRef.root.innerHTML;
-  //   // quillRef.current.on('text-change', (delta, oldDelta, source) => {
-  //   //   if (source === 'user') {
-  //   //     doc.submitOp(delta, { source: quillRef.current }, (err) => {
-  //   //       if (err) console.error('Submit OP returned an error:', err);
-  //   //     });
-  //   //   }
-  //   // });
-
-  //   // doc.on('op', (op, source) => {
-  //   //   if (quillRef.current && source !== quillRef.current) {
-  //   //     quillRef.current.updateContents(op);
-  //   //   }    
-  //   // });
-  // });
-
+  }, [doc]);
 
   useEffect(() => {
     // Subscribe to ShareDB document changes
@@ -74,17 +43,25 @@ const QuillSetup = () => {
       if (err) throw err;
 
       // Set Quill editor content when document is updated in ShareDB
-      quillRef.current.setContents(doc.data);
-      console.log(doc.data);
+      const content = doc.data;
+      quillRef.current.setContents(content);
     });
 
     // Unsubscribe from ShareDB document changes when component unmounts
     return () => {
       doc.unsubscribe();
     };
-  }, []); 
+  }, [doc]);
+ 
+  useEffect(() => {
+    // Handle ShareDB operations and update Quill editor
+    doc.on('op', (op, source) => {
+      if (quillRef.current && source !== quillRef.current) {
+        quillRef.current.updateContents(op);
+      }
+    });
+  }, [doc]);
 
-  
   return (
     <div>
       <div id={`editor`} style={{ height: '400px', border: '2px solid purple' }} />
@@ -94,7 +71,6 @@ const QuillSetup = () => {
 };
 
 export default QuillSetup;
-
 
 
 

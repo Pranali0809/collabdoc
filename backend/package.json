@@ -28,6 +28,7 @@
     "graphql-ws": "^5.14.3",
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
+    "mongojs": "^3.1.0",
     "mongoose": "^8.0.3",
     "nodemon": "^3.0.2",
     "rich-text": "^4.1.0",

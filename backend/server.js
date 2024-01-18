@@ -32,7 +32,7 @@ createDoc(startServer);
 // Create initial document then fire callback
 function createDoc(callback) {
   let connection = backend.connect();
-  let doc = connection.get('examples', 'test-doc3');
+  let doc = connection.get('examples', 'test-doc4');
   doc.fetch(function(err) {
       if (err) throw err;
           doc.create([{insert: 'Hi2!', attributes:{author: 3}}], 'rich-text', callback);
@@ -86,7 +86,16 @@ async function startServer() {
     wss.on('connection', function(ws) {
         let stream = new WebSocketJSONStream(ws);
         backend.listen(stream);
-        console.log("Websocket Connected");
+        ws.on('connect', () => {
+          console.log("Websocket Connected");
+          
+          // Check if the WebSocket is open
+          if (ws.readyState === WebSocket.OPEN) {
+            console.log("WebSocket is open and connected");
+          } else {
+            console.log("WebSocket is not open");
+          }
+        });
         ws.on('close', (code, reason) => {
               console.log(`WebSocket closed with code ${code} and reason: ${reason}`);
         });
@@ -106,4 +115,4 @@ async function startServer() {
   httpServer.listen(port, () => {
     console.log("Server running on http://localhost:" + "4200" + "/graphql");
   });
-};
+}; 
