@@ -25,14 +25,16 @@ const WebSocket = require('ws')
 ShareDB.types.register(richText.type);
 // let backend = new ShareDB();
 const backend = new ShareDB({
-    db: require('sharedb-mongo')(process.env.MONGODB_URI)
+    db: require('sharedb-mongo')(process.env.MONGODB_URI),
+    presence:true,
+    
   });;
 
 createDoc(startServer);
 // Create initial document then fire callback
 function createDoc(callback) {
   let connection = backend.connect();
-  let doc = connection.get('examples', 'test-doc4');
+  let doc = connection.get('examples', 'test-doc7');
   doc.fetch(function(err) {
       if (err) throw err;
           doc.create([{insert: 'Hi2!', attributes:{author: 3}}], 'rich-text', callback);
@@ -86,7 +88,7 @@ async function startServer() {
     wss.on('connection', function(ws) {
         let stream = new WebSocketJSONStream(ws);
         backend.listen(stream);
-        ws.on('connect', () => {
+        ws.on('open', () => {
           console.log("Websocket Connected");
           
           // Check if the WebSocket is open
@@ -113,6 +115,6 @@ async function startServer() {
   }));
 
   httpServer.listen(port, () => {
-    console.log("Server running on http://localhost:" + "4200" + "/graphql");
+    console.log("Server hi " + "4200" + "/graphql");
   });
 }; 
