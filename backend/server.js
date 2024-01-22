@@ -27,6 +27,7 @@ ShareDB.types.register(richText.type);
 const backend = new ShareDB({
     db: require('sharedb-mongo')(process.env.MONGODB_URI),
     presence:true,
+    doNotForwardSendPresenceErrorsToClient: true
     
   });;
 
@@ -42,7 +43,6 @@ function createDoc(callback) {
       callback();
   });
 }
-
 
 async function startServer() {
 
@@ -66,25 +66,8 @@ async function startServer() {
 
   app.use(express.static('static'));
   app.use(express.static('node_modules/quill/dist'));
-  // ShareDB.types.register(require('rich-text').type);
-  // const backendShareDb = new ShareDB({
-  //   db: require('sharedb-mongo')(process.env.MONGODB_URI)
-  // });;
 
-  // const wsServer = new WebSocketServer({
-  //   server: httpServer,
-  //   path: "/graphql", 
-  // });
-
-  // wsServer.on('connection', (webSocket) => {
-  //   const stream = new WebSocketJSONStream(webSocket)
-  //   backend.listen(stream)
-  //   webSocket.on('close', (code, reason) => {
-  //     console.log(`WebSocket closed with code ${code} and reason: ${reason}`);
-  //   });
-  // })
-
-  let wss = new WebSocket.Server({server: httpServer});
+ let wss=new WebSocket.Server({server: httpServer});
     wss.on('connection', function(ws) {
         let stream = new WebSocketJSONStream(ws);
         backend.listen(stream);
