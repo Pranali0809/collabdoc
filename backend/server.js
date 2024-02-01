@@ -28,18 +28,7 @@ const backend = new ShareDB({
     db: require('sharedb-mongo')(process.env.MONGODB_URI)
   });;
 
-createDoc(startServer);
-// Create initial document then fire callback
-function createDoc(callback) {
-  let connection = backend.connect();
-  let doc = connection.get('examples', 'test-doc4');
-  doc.fetch(function(err) {
-      if (err) throw err;
-          doc.create([{insert: 'Hi2!', attributes:{author: 3}}], 'rich-text', callback);
-          return;
-      callback();
-  });
-}
+startServer();
 
 
 async function startServer() {

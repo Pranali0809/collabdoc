@@ -11,7 +11,7 @@ import { getMainDefinition } from '@apollo/client/utilities';
 
 const httpLink = createHttpLink({
   uri: 'http://localhost:4200/graphql',
-  credentials: 'include',
+  // credentials: 'include',
 });
 
 // const wsLink=new WebSocketLink({
