@@ -9,21 +9,28 @@ const { ApolloServerPluginDrainHttpServer } =require('@apollo/server/plugin/drai
 const { expressMiddleware } =require("@apollo/server/express4");
 const bodyParser =require('body-parser');
 const cookieParser=require('cookie-parser');
-const ShareDB = require('sharedb');
 const { MongoClient } = require('mongodb');
 const {WebSocketServer} = require("ws");
 const mongoose = require("mongoose");
+const ShareDB = require('sharedb');
 const shareDBMongo = require('sharedb-mongo');
 const dotenv = require("dotenv");
+dotenv.config();
 const schema=require('./graphql/schema/index.js')
 const WebSocketJSONStream = require('@teamwork/websocket-json-stream')
-dotenv.config();
 const port = process.env.PORT || 4200;
 const richText = require('rich-text');
 const WebSocket = require('ws')
 
 ShareDB.types.register(richText.type);
 // let backend = new ShareDB();
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => {
+    console.log('Connected to MongoDB');
+}).catch((error) => {
+    console.error('MongoDB connection error:', error);
+});
+
 const backend = new ShareDB({
     db: require('sharedb-mongo')(process.env.MONGODB_URI),
     presence:true,
@@ -71,19 +78,19 @@ async function startServer() {
     wss.on('connection', function(ws) {
         let stream = new WebSocketJSONStream(ws);
         backend.listen(stream);
-        ws.on('open', () => {
-          console.log("Websocket Connected");
+        // ws.on('open', () => {
+        //   console.log("Websocket Connected");
           
-          // Check if the WebSocket is open
-          if (ws.readyState === WebSocket.OPEN) {
-            console.log("WebSocket is open and connected");
-          } else {
-            console.log("WebSocket is not open");
-          }
-        });
-        ws.on('close', (code, reason) => {
-              console.log(`WebSocket closed with code ${code} and reason: ${reason}`);
-        });
+        //   // Check if the WebSocket is open
+        //   if (ws.readyState === WebSocket.OPEN) {
+        //     console.log("WebSocket is open and connected");
+        //   } else {
+        //     console.log("WebSocket is not open");
+        //   }
+        // });
+        // ws.on('close', (code, reason) => {
+        //       console.log(`WebSocket closed with code ${code} and reason: ${reason}`);
+        // });
     });
   // const serverCleanup = useServer({ schema }, wsServer);
   const server = new ApolloServer({
@@ -101,3 +108,4 @@ async function startServer() {
     console.log("Server hi " + "4200" + "/graphql");
   });
 }; 
+module.exports=backend;

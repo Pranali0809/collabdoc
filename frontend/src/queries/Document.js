@@ -24,5 +24,17 @@ const DOCUMENT_CHANGED_SUBSCRIPTION = gql`
   }
 `;
 
+const GET_DOCUMENTS = gql`
+  mutation($userId: String!) {
+    getDocuments(userId: $userId) {
+      _id
+      title
+      owner
+      content
+      associatedUsers
+    }
+  }
+`;
 
-export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION}
+
+export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION,GET_DOCUMENTS}

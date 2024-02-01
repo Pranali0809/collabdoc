@@ -1,12 +1,13 @@
-import{useSelector} from 'react-redux';
 import AddDocBut from '../components/AddDocBut'
+import DocumentList from '../components/DocumentList'
 import QuillSetup from '../components/QuillSetup'
 
 const Home = () => {
   return (
     <div className='p-4 h-screen w-screen'>
       <AddDocBut/>
-      <QuillSetup/>
+      <DocumentList/>
+      {/* <QuillSetup/> */}
     </div>
   )
 }

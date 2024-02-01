@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react';
+import { useState } from 'react';
 import {useDispatch,useSelector} from'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useMutation,useSubscription} from '@apollo/client';
@@ -9,12 +9,9 @@ import {DOCUMENT_CHANGED_SUBSCRIPTION} from "../queries/Document.js"
 const Signin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isEmailValid, setIsEmailValid] = useState(false);
-  const [showUserCredentialsError, setShowUserCredentialsError] =
-    useState(false);
+ 
   
-  const [loginMutation,{logout,error}]=useMutation(LOGIN);
+  const [loginMutation]=useMutation(LOGIN);
 
   const userId = useSelector((state) => state.auth.userId);
 
@@ -53,9 +50,7 @@ const Signin = () => {
     <div className="flex justify-center items-center h-screen">
     <div className="rounded-lg  p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">Welcome Back</h1>
-      {/* {renderEmailError()}
-      {renderPasswordError()}
-      {renderUserCredentialsError()} */}
+ 
       <form
         className="w-full max-w-sm mx-auto"
         onSubmit={()=>handleSubmit()}
@@ -81,11 +76,8 @@ const Signin = () => {
         </div>
         <div className="flex flex-col space-y-4 items-center justify-center">
           <button
-            // className={`flex text-white bg-sky-400 border-2 border-sky-400 font-bold py-2 px-4 rounded hover:bg-transparent hover:text-sky-400 hover:border-2  focus:outline-none focus:shadow-outline ${
-            //   !isEmailValid ? "opacity-50 cursor-not-allowed" : ""
-            // }`}
+          
             onClick={handleSubmit}
-            // disabled={!isEmailValid}
           >
             Log in
           </button>

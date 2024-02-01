@@ -5,8 +5,8 @@ import{useSelector} from 'react-redux';
 
 const AddDocBut = () => {
 const userId = useSelector((state) => state.auth.userId);
-
-  const [createDocumentMutation, { loading, error }] = useMutation(CREATE_DOCUMENT);
+console.log(userId);
+  const [createDocumentMutation] = useMutation(CREATE_DOCUMENT);
 
 
   const addDocument=async()=>{
@@ -22,9 +22,6 @@ const userId = useSelector((state) => state.auth.userId);
     }
   }
   return (
-    // <button className="bg-transparent border border-blue-500 hover:border-blue-700 text-blue-500 font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline-blue h-1000">
-    //   + New Document
-    // </button>
       <div className="w-32 h-32 bg-transparent border-dotted border-2 border-black rounded-md flex flex-col items-center justify-center text-black cursor-pointer"
       onClick={addDocument}>
         <div className="text-3xl mb-2">+</div>
@@ -32,5 +29,4 @@ const userId = useSelector((state) => state.auth.userId);
       </div>
   );
 };
-
 export default AddDocBut;
