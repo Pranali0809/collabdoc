@@ -66,14 +66,11 @@ const everyResolver = {
           throw new Error("inValid password");
         }
         const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
-        await context.res
-          .cookie("authToken", token, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000,
-            secure: true,
-            sameSite: "None",
-          })
-          .status(201);
+        req.cookies.set('auth-token',token, {
+          signed: true,
+          expires:24*60*60*1000
+        });
+          res.status(201);
         return { userId: user.uid, token: token, tokenExpiration: 1 };
       } catch (error) {
         console.log(error);

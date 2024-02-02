@@ -9,7 +9,7 @@ import {ApolloClient, InMemoryCache,ApolloProvider,createHttpLink } from '@apoll
 
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4200/graphql',
+  uri: 'http:///localhost:4200/graphql',
   // credentials: 'include',
 });
 

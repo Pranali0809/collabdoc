@@ -13,6 +13,7 @@ const { MongoClient } = require('mongodb');
 const {WebSocketServer} = require("ws");
 const mongoose = require("mongoose");
 const ShareDB = require('sharedb');
+const Cookies =require('cookies');
 const shareDBMongo = require('sharedb-mongo');
 const dotenv = require("dotenv");
 dotenv.config();
@@ -73,7 +74,13 @@ async function startServer() {
 
   app.use(express.static('static'));
   app.use(express.static('node_modules/quill/dist'));
-
+  app.use((req, res, next) => {
+    const options = {
+      keys: 'auth'
+    };
+    req.cookies = new Cookies(req, res, options);
+    next();
+  });
  let wss=new WebSocket.Server({server: httpServer});
     wss.on('connection', function(ws) {
         let stream = new WebSocketJSONStream(ws);
