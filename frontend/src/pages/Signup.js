@@ -4,14 +4,14 @@ import {useDispatch} from'react-redux';
 import { setUserId } from './../state/authStates.js'
 import { useMutation } from '@apollo/client';
 import { CREATE_USER } from '../queries/Auth';
-
+import { useCookies } from 'react-cookie'; 
 
 const Signup = () => {
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
   const dispatch=useDispatch();
   const [createUserMutation, { loading, error }] = useMutation(CREATE_USER);
-
+  const [cookies, setCookie] = useCookies(['authToken']);
 
   const handleSubmit=async (e)=>{
     e.preventDefault();
@@ -23,7 +23,10 @@ const Signup = () => {
         }
       });
       await dispatch(setUserId(data.createUser.userId));
-      console.log(data.createUser);
+      console.log(data);
+      setCookie('authToken', data.login.token, { secure:true,path: '/', maxAge: 86400, sameSite: 'None' });
+      console.log(cookies.authToken);
+     
     } catch (error) {
       console.error(error);
     }

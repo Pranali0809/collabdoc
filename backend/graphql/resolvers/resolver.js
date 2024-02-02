@@ -18,6 +18,26 @@ const backend = new ShareDB({
   
 });;
 let connection=backend.connect();
+
+const verifyToken = (req, res) => {
+  console.log(req.cookies)
+  // try {
+  //   let  authToken  = req.cookies.authToken;
+  //   console.log(authToken)
+  //   if (!authToken) {
+  //     return res.status(403).send("Access Denied");
+  //   }
+
+  //   if (authToken.startsWith("Bearer ")) {
+  //     authToken = authToken.slice(7, authToken.length).trimLeft();
+  //   }
+
+  //   const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+  // } catch (err) {
+  //   res.status(500).json({ error: err.message });
+  // }
+};
+
 const everyResolver = {
   Mutation: {
     createUser: async (_, { email, password }, context) => {
@@ -78,6 +98,8 @@ const everyResolver = {
     },
     createDocument: async (_, { userId }, context) => {
       try {
+        // console.log(context)
+        verifyToken(context.req,context.res);
         const document = new Document({
           title: "Untitled",
           owner: userId,

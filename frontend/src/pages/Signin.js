@@ -1,49 +1,52 @@
 import { useState } from 'react';
-import {useDispatch,useSelector} from'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useMutation,useSubscription} from '@apollo/client';
-import { setUserId } from './../state/authStates.js'
+import { useMutation, useSubscription } from '@apollo/client';
+import { setUserId } from './../state/authStates.js';
 import { LOGIN } from '../queries/Auth';
-import {DOCUMENT_CHANGED_SUBSCRIPTION} from "../queries/Document.js"
+import { DOCUMENT_CHANGED_SUBSCRIPTION } from '../queries/Document.js';
+import { useCookies } from 'react-cookie';  // Import the useCookies hook
 
 const Signin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
- 
-  
-  const [loginMutation]=useMutation(LOGIN);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [loginMutation] = useMutation(LOGIN);
 
   const userId = useSelector((state) => state.auth.userId);
 
   const dispatch = useDispatch();
-  const navigate=useNavigate();
-  
-  const { data: documentData } = useSubscription(DOCUMENT_CHANGED_SUBSCRIPTION, {
-    variables: { userId: userId }, 
-        skip: !userId, 
-  });
+  const navigate = useNavigate();
 
+  const [cookies, setCookie] = useCookies(['authToken']);  // Initialize the useCookies hook
+
+  const { data: documentData } = useSubscription(DOCUMENT_CHANGED_SUBSCRIPTION, {
+    variables: { userId: userId },
+    skip: !userId,
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const {data}=await loginMutation({
-        variables:{
-          email:email,
-          password:password
-        }
+      const { data } = await loginMutation({
+        variables: {
+          email: email,
+          password: password,
+        },
       });
       dispatch(setUserId(data.login.userId));
 
-     
       navigate('/home');
-      console.log(data.login);
+      console.log(data);
+
+      // Use setCookie from the useCookies hook to set the cookie
+      setCookie('authToken', data.login.token, { secure:true,path: '/', maxAge: 86400, sameSite: 'None' });
+      console.log(cookies.authToken);  // Access the cookie value from the cookies object
 
     } catch (error) {
       console.error(error);
     }
   };
-
   
 
   return (

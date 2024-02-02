@@ -3,8 +3,8 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
 
 ShareDB.types.register(require('rich-text').type);
 
+const socket = new ReconnectingWebSocket("ws://localhost:4200/graphql");
 const createWebSocketConnection = () => {
-  const socket = new ReconnectingWebSocket("ws://localhost:4200/graphql");
   socket.addEventListener('error', (event) => {
     console.error('WebSocket error:', event);
   });
@@ -16,7 +16,6 @@ const createWebSocketConnection = () => {
   });
   return new ShareDB.Connection(socket);
 };
-
 const shareDBConnection = createWebSocketConnection();
 
 export default shareDBConnection;
