@@ -35,6 +35,7 @@ const typeDefs=gql`
         login(email:String!,password:String!):AuthData!
         createDocument(userId:String!):Document!
         updateDocument(documentId:String!,content: String!): Document!
+        getDocuments(userId: String!): [Document]!
     }
 
     
