@@ -20,22 +20,22 @@ const backend = new ShareDB({
 let connection=backend.connect();
 
 const verifyToken = (req, res) => {
-  console.log(req.cookies)
-  // try {
-  //   let  authToken  = req.cookies.authToken;
-  //   console.log(authToken)
-  //   if (!authToken) {
-  //     return res.status(403).send("Access Denied");
-  //   }
 
-  //   if (authToken.startsWith("Bearer ")) {
-  //     authToken = authToken.slice(7, authToken.length).trimLeft();
-  //   }
+  try {
+    let  {authToken}  = req.cookies;
+    if (!authToken) {
+      return res.status(403).send("Access Denied");
+    }
 
-  //   const verified = jwt.verify(authToken, process.env.JWT_SECRET);
-  // } catch (err) {
-  //   res.status(500).json({ error: err.message });
-  // }
+    if (authToken.startsWith("Bearer ")) {
+      authToken = authToken.slice(7, authToken.length).trimLeft();
+    }
+
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    console.log(verified);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 const everyResolver = {
@@ -86,11 +86,6 @@ const everyResolver = {
           throw new Error("inValid password");
         }
         const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
-        req.cookies.set('auth-token',token, {
-          signed: true,
-          expires:24*60*60*1000
-        });
-          res.status(201);
         return { userId: user.uid, token: token, tokenExpiration: 1 };
       } catch (error) {
         console.log(error);
@@ -98,7 +93,7 @@ const everyResolver = {
     },
     createDocument: async (_, { userId }, context) => {
       try {
-        // console.log(context)
+      
         verifyToken(context.req,context.res);
         const document = new Document({
           title: "Untitled",
@@ -128,10 +123,7 @@ const everyResolver = {
     },
 
     updateDocument: (_parent, args) => {
-      // Update the document content
-      // const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
-      // doc.create({ content: '' });
-      // doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
+
       const _id = args.documentId;
       const content = args.content;
       pubsub.publish("DOCUMENT_CHANGED", { documentChanged: { _id, content } });
