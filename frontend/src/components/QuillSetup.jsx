@@ -1,37 +1,47 @@
-import React, { useEffect } from "react";
-import { useParams } from 'react-router-dom';
+import {React,useEffect,useState} from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import shareDBConnection from "../connections/shareDBConn";
 import QuillCursors from "quill-cursors";
 import { useCookies } from 'react-cookie';
-import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@apollo/client';
+import { ADD_CLICKED_DOCUMENTS } from "../queries/Document";
+import{useSelector} from 'react-redux';
 
 const QuillSetup = () => {
-  const [cookies, setCookie] = useCookies(['authToken']);
-  const navigate = useNavigate();
+
 
   const { docId } = useParams();
+    const userId = useSelector((state) => state.auth.userId);
+  const navigate=useNavigate();
+  const [cookies, setCookie] = useCookies(['authToken']);
   const doc = shareDBConnection.get("collaborations", docId);
   const presence = shareDBConnection.getDocPresence("collaborations", docId);
-  Quill.register('modules/cursors', QuillCursors);
-
-  const initializeQuill = () => {
-    var quill = new Quill('#editor', {
-      theme: 'snow',
-      modules: { cursors: true }
+  Quill.register("modules/cursors", QuillCursors);
+  const [addClickedDoc] = useMutation(ADD_CLICKED_DOCUMENTS);
+const [content, setContent] = useState("");
+  function initializeQuill() {
+    var quill = new Quill("#editor", {
+      theme: "snow",
+      modules: { cursors: true },
     });
-
+    setContent(quill.root.innerHTML);
     const cursors = quill.getModule("cursors");
-    cursors.createCursor('cursor', 'Pranali', 'pink');
+    cursors.createCursor("cursor", "Pranali", "pink");
     const localPresence = presence.create();
     quill.setContents(doc.data);
+    // localPresence.submit("online");
 
     quill.on("text-change", (delta, oldDelta, source) => {
       if (source === "user") {
         doc.submitOp(delta, { source: quill }, (err) => {
           if (err) console.error("Submit OP returned an error:", err);
         });
+        const content = quill.root.innerHTML;
+        setContent(content);
+        console.log(content)
+
       }
     });
 
@@ -41,34 +51,68 @@ const QuillSetup = () => {
       }
     });
 
-    console.log(localPresence, presence);
     presence.subscribe();
-    presence.on('receive', (id, range) => {
+
+    presence.on("receive", (id, range) => {
+      console.log("sdf");
       if (range === null) {
         console.log("remote left");
+        // The remote client is no longer present in the document
       } else {
+        // Handle the new value by updating UI, etc.
+
         var name = (range && range.name) || "Anonymous";
-        cursors.createCursor(id, name, 'green');
+        cursors.createCursor(id, name, "green");
         cursors.moveCursor(id, range);
       }
-    })
+    });
+
+    quill.on("selection-change", (range, oldRange, source) => {
+      if (source !== "user") return;
+      if (!range) return;
+      else {
+        setTimeout(() => cursors.moveCursor("cursor", range));
+        localPresence.submit(range, function (error) {
+          if (error) throw error;
+        });
+      }
+    });
   }
 
   useEffect(() => {
+   
+
     verifyToken();
-  }, []); 
+  }, []);
+
+  const handleAddClickedDocuments = async () => {
+    try {
+      const { data } = await addClickedDoc({
+        variables: {
+          userId,
+          docId
+        }
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+    
+
+
 
   const verifyToken = () => {
-    const authToken = cookies['authToken'];
+    const authToken = cookies["authToken"];
     console.log(authToken);
 
     if (authToken) {
       doc.subscribe((err) => {
         if (err) throw err;
-        initializeQuill(); 
+        handleAddClickedDocuments();
+        initializeQuill();
       });
     } else {
-      console.log('AuthToken is not set.');
+      console.log("AuthToken is not set.");
       navigate(`/`);
     }
   };

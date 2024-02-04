@@ -8,21 +8,21 @@ const Document = require("../../models/Document.js");
 const ShareDB = require("sharedb");
 const { getAuth } = require("firebase/auth");
 const pubsub = new PubSub();
-const shareDBMongo = require('sharedb-mongo');
+const shareDBMongo = require("sharedb-mongo");
 const dotenv = require("dotenv");
+const {ObjectId}=require("mongodb")
+
 dotenv.config();
 const backend = new ShareDB({
-  db: require('sharedb-mongo')(process.env.MONGODB_URI),
-  presence:true,
-  doNotForwardSendPresenceErrorsToClient: true
-  
-});;
-let connection=backend.connect();
+  db: require("sharedb-mongo")(process.env.MONGODB_URI),
+  presence: true,
+  doNotForwardSendPresenceErrorsToClient: true,
+});
+let connection = backend.connect();
 
 const verifyToken = (req, res) => {
-
   try {
-    let  {authToken}  = req.cookies;
+    let { authToken } = req.cookies;
     if (!authToken) {
       return res.status(403).send("Access Denied");
     }
@@ -32,7 +32,6 @@ const verifyToken = (req, res) => {
     }
 
     const verified = jwt.verify(authToken, process.env.JWT_SECRET);
-    console.log(verified);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -93,8 +92,7 @@ const everyResolver = {
     },
     createDocument: async (_, { userId }, context) => {
       try {
-      
-        verifyToken(context.req,context.res);
+        verifyToken(context.req, context.res);
         const document = new Document({
           title: "Untitled",
           owner: userId,
@@ -102,35 +100,57 @@ const everyResolver = {
           associatedUsers: [userId],
         });
         const result = await document.save();
+        
 
-        let doc = connection.get('collaborations', result._id);
-        doc.fetch(function(err) {
-                if (err) throw err;
-                    doc.create([{insert: ''}], 'rich-text');
-                   
-            });
+        const user = await User.findOneAndUpdate(
+          { uid: userId },
+          { $push: { createdDocuments: result._id } }
+        );
 
-            return {
-              _id: result._id,
-              title: result.title,
-              owner: result.owner,
-              content: result.content,
-              associatedUsers: result.associatedUsers,
-            };
+
+        await user.save();
+        let doc = connection.get("collaborations", result._id);
+        doc.fetch(function (err) {
+          if (err) throw err;
+          doc.create([{ insert: "" }], "rich-text");
+        });
+
+        return {
+          _id: result._id,
+          title: result.title,
+          owner: result.owner,
+          content: result.content,
+          associatedUsers: result.associatedUsers,
+        };
       } catch (error) {
         console.log(error);
       }
     },
-
+    addClickedDocuments: async (_, { userId, docId }, context) => {
+      verifyToken(context.req, context.res);
+      try {
+        const user = await User.findOneAndUpdate(
+          { uid: userId },
+          { $push: { associatedDocuments: docId } }
+        );
+        await user.save();
+        const document = await User.findOneAndUpdate(
+          { _id: docId },
+          { $push: { associatedUsers: userId } }
+        );
+        return document;
+      } catch (error) {
+        console.log(error);
+      }
+    },
     updateDocument: (_parent, args) => {
-
       const _id = args.documentId;
       const content = args.content;
       pubsub.publish("DOCUMENT_CHANGED", { documentChanged: { _id, content } });
       console.log("inside update doc res");
       return { _id: _id, content: content };
     },
-    getDocuments: async (_, { userId },context) => {
+    getDocuments: async (_, { userId }, context) => {
       try {
         const documents = await Document.find({ associatedUsers: userId });
         return documents;

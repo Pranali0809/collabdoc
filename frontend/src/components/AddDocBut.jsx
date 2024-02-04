@@ -3,20 +3,22 @@ import { useMutation } from '@apollo/client';
 import { CREATE_DOCUMENT } from '../queries/Document';
 import{useSelector} from 'react-redux';
 
-const AddDocBut = () => {
+const AddDocBut = ({setDocument}) => {
 const userId = useSelector((state) => state.auth.userId);
 console.log(userId);
   const [createDocumentMutation] = useMutation(CREATE_DOCUMENT);
 
-
+  
   const addDocument=async()=>{
     try {
+    
       const { data } = await createDocumentMutation({
         variables: {
           userId: userId,
         }
       });
       console.log(data.createDocument);
+      setDocument(data.createDocument);
     } catch (error) {
       console.error(error);
     }

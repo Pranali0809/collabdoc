@@ -36,5 +36,19 @@ const GET_DOCUMENTS = gql`
   }
 `;
 
+const ADD_CLICKED_DOCUMENTS = gql`
+  mutation($userId: String!, $docId: String!) {
+    addClickedDocuments(userId: $userId, docId: $docId) {
+      _id
+      title
+      owner
+      content
+      associatedUsers
+    }
+  }
+`;
 
-export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION,GET_DOCUMENTS}
+
+
+
+export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION,GET_DOCUMENTS,ADD_CLICKED_DOCUMENTS}

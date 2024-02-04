@@ -4,6 +4,8 @@ import './index.css';
 import App from './App';
 import store from './store';
 import { Provider } from 'react-redux';
+import {persistStore,} from "redux-persist";
+import {PersistGate} from "redux-persist/integration/react";
 import {ApolloClient, InMemoryCache,ApolloProvider,createHttpLink } from '@apollo/client';
 
 
@@ -25,7 +27,9 @@ root.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
     <Provider store={store}>
-    <App />
+      <PersistGate loading={null} persistor={persistStore(store)}>
+        <App />
+      </PersistGate>
     </Provider>
     </ApolloProvider>
   </React.StrictMode>

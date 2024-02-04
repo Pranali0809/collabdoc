@@ -3,11 +3,10 @@ import { useMutation } from '@apollo/client';
 import { GET_DOCUMENTS } from '../queries/Document';
 import{useSelector} from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-const DocumentList = () => {
+const DocumentList = ({document}) => {
     const navigate = useNavigate(); 
     const [documents, setDocuments] = useState([]);
-    // const userId = useSelector((state) => state.auth.userId);
-    const [userId,setUserId]=useState("N7mSb7D2kPNCM8XpGgm7Qb5NVIg1");
+    const userId = useSelector((state) => state.auth.userId);
     const [getDocumentMutation] = useMutation(GET_DOCUMENTS);
 
     const getDocuments =async()=>{
@@ -15,7 +14,7 @@ const DocumentList = () => {
         try {
             const { data } = await getDocumentMutation({
               variables: {
-                userId:"N7mSb7D2kPNCM8XpGgm7Qb5NVIg1",
+                userId,
               }
             });
             console.log(data.getDocuments);
@@ -33,7 +32,7 @@ const DocumentList = () => {
   
     useEffect(() => {
         getDocuments();
-      },[]);
+      },[document]);
   return (
     <div>
       <h2>Documents Associated with User {userId}</h2>
