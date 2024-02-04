@@ -6,8 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const DocumentList = () => {
     const navigate = useNavigate(); 
     const [documents, setDocuments] = useState([]);
-    // const userId = useSelector((state) => state.auth.userId);
-    const [userId,setUserId]=useState("N7mSb7D2kPNCM8XpGgm7Qb5NVIg1");
+    const userId = useSelector((state) => state.auth.userId);
     const [getDocumentMutation] = useMutation(GET_DOCUMENTS);
 
     const getDocuments =async()=>{
@@ -15,7 +14,7 @@ const DocumentList = () => {
         try {
             const { data } = await getDocumentMutation({
               variables: {
-                userId:"N7mSb7D2kPNCM8XpGgm7Qb5NVIg1",
+                userId,
               }
             });
             console.log(data.getDocuments);

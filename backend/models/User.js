@@ -15,8 +15,12 @@ const userSchema=new Schema({
         type: String,
         required: true,
     },
-    documents:{
+    createdDocuments:{
         type: [String]
+    },
+    associatedDocuments:{
+        type: [String]
+    
     }
 },{timestamps:true})
 

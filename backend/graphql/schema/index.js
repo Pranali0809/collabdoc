@@ -36,6 +36,7 @@ const typeDefs=gql`
         createDocument(userId:String!):Document!
         updateDocument(documentId:String!,content: String!): Document!
         getDocuments(userId: String!): [Document]!
+        addClickedDocuments(userId: String!, docId: String!): [Document]!
     }
 
     
