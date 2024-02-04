@@ -20,9 +20,9 @@ const backend = new ShareDB({
 let connection=backend.connect();
 
 const verifyToken = (req, res) => {
+
   try {
     let  {authToken}  = req.cookies;
-    console.log(authToken)
     if (!authToken) {
       return res.status(403).send("Access Denied");
     }
@@ -32,6 +32,7 @@ const verifyToken = (req, res) => {
     }
 
     const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    console.log(verified);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -85,14 +86,6 @@ const everyResolver = {
           throw new Error("inValid password");
         }
         const token = jwt.sign({ id: user.uid }, process.env.JWT_SECRET);
-        await context.res
-          .cookie("authToken", token, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000,
-            secure: true,
-            sameSite: "None",
-          })
-          .status(201);
         return { userId: user.uid, token: token, tokenExpiration: 1 };
       } catch (error) {
         console.log(error);
@@ -100,8 +93,8 @@ const everyResolver = {
     },
     createDocument: async (_, { userId }, context) => {
       try {
-        // console.log(context)
-        verifyToken(context.req.cookies,context.res.cookies);
+      
+        verifyToken(context.req,context.res);
         const document = new Document({
           title: "Untitled",
           owner: userId,
@@ -130,10 +123,7 @@ const everyResolver = {
     },
 
     updateDocument: (_parent, args) => {
-      // Update the document content
-      // const doc = shareDB.get('documents', '657ede539e01bb0d81685798');
-      // doc.create({ content: '' });
-      // doc.submitOp([{ p: ['content'], od: doc.data.content, oi: content }]);
+
       const _id = args.documentId;
       const content = args.content;
       pubsub.publish("DOCUMENT_CHANGED", { documentChanged: { _id, content } });

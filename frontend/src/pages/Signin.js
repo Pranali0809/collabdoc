@@ -40,7 +40,7 @@ const Signin = () => {
       console.log(data);
 
       // Use setCookie from the useCookies hook to set the cookie
-      setCookie('authToken', data.login.token, { secure:true,path: '/', maxAge: 86400, sameSite: 'None' });
+      setCookie('authToken', data.login.token, {path: '/', maxAge: 86400 });
       console.log(cookies.authToken);  // Access the cookie value from the cookies object
 
     } catch (error) {
