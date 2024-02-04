@@ -21,7 +21,8 @@ const schema=require('./graphql/schema/index.js')
 const WebSocketJSONStream = require('@teamwork/websocket-json-stream')
 const port = process.env.PORT || 4200;
 const richText = require('rich-text');
-const WebSocket = require('ws')
+const WebSocket = require('ws');
+const { nextTick } = require("process");
 
 ShareDB.types.register(richText.type);
 // let backend = new ShareDB();
@@ -52,6 +53,27 @@ function createDoc(callback) {
   });
 }
 
+const verifyToken = (req, res, next) => {
+  try {
+    let { authToken } = req.cookies;
+    console.log(authToken)
+    if (!authToken) {
+      return res.status(403).send("Access Denied");
+    }
+    
+    if (authToken.startsWith("Bearer ")) {
+      authToken = authToken.slice(7, authToken.length).trimLeft();
+    }
+    
+    const verified = jwt.verify(authToken, process.env.JWT_SECRET);
+    console.log(verified);
+    next();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 async function startServer() {
 
   const app = express();
@@ -64,12 +86,12 @@ async function startServer() {
     credentials: true,
   };
 
-
+  
   app.use(cors(corsOption));
 
   app.use(express.static('static'));
   app.use(express.static('node_modules/quill/dist'));
- 
+
  let wss=new WebSocket.Server({server: httpServer});
     wss.on('connection', function(ws) {
         let stream = new WebSocketJSONStream(ws);
@@ -96,7 +118,7 @@ async function startServer() {
 
   await server.start();
 
-  app.use('/graphql',bodyParser.json(),cookieParser(),  expressMiddleware(server, {
+  app.use('/graphql',bodyParser.json(),cookieParser(), expressMiddleware(server, {
     context: async ({ req,res }) => ({ req,res }),
   }));
 
