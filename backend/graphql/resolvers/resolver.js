@@ -130,14 +130,15 @@ const everyResolver = {
       verifyToken(context.req, context.res);
       try {
         const user = await User.findOneAndUpdate(
-          { uid: userId },
-          { $push: { associatedDocuments: docId } }
+          { uid: userId, associatedDocuments: { $ne: docId } },
+          { $addToSet: { associatedDocuments: docId } },
+          { new: true }
         );
         await user.save();
-        const document = await User.findOneAndUpdate(
-          { _id: docId },
-          { $push: { associatedUsers: userId } }
-        );
+        // const document = await User.findOneAndUpdate(
+        //   { _id: docId },
+        //   { $push: { associatedUsers: userId } }
+        // );
         return document;
       } catch (error) {
         console.log(error);

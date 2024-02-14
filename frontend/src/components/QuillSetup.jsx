@@ -1,4 +1,4 @@
-import {React,useEffect,useState} from "react";
+import {React,useEffect,useState,useCallback} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
@@ -8,6 +8,7 @@ import { useCookies } from 'react-cookie';
 import { useMutation } from '@apollo/client';
 import { ADD_CLICKED_DOCUMENTS } from "../queries/Document";
 import{useSelector} from 'react-redux';
+import LogOutBut from "./LogOutBut";
 
 const QuillSetup = () => {
 
@@ -20,12 +21,29 @@ const QuillSetup = () => {
   const presence = shareDBConnection.getDocPresence("collaborations", docId);
   Quill.register("modules/cursors", QuillCursors);
   const [addClickedDoc] = useMutation(ADD_CLICKED_DOCUMENTS);
-const [content, setContent] = useState("");
-  function initializeQuill() {
-    var quill = new Quill("#editor", {
+  const [content, setContent] = useState("");
+  let quill;
+  
+  const wrapperRef=useCallback(wrapper=>{
+    verifyToken();
+    if(wrapper==null)return
+    wrapper.innerHTML=""
+    const editor=document.createElement("div")
+    editor.style.height = "100%";
+    editor.style.border = "2px solid purple";
+    editor.style.width = "100%";
+    wrapper.append(editor)
+    quill = new Quill(editor, {
       theme: "snow",
       modules: { cursors: true },
     });
+    quill.setContents(doc.data);
+  },[])
+  const initializeQuill = useCallback(()=> {
+    // var quill = new Quill("#editor", {
+    //   theme: "snow",
+    //   modules: { cursors: true },
+    // });
     setContent(quill.root.innerHTML);
     const cursors = quill.getModule("cursors");
     cursors.createCursor("cursor", "Pranali", "pink");
@@ -77,13 +95,8 @@ const [content, setContent] = useState("");
         });
       }
     });
-  }
+  },[]);
 
-  useEffect(() => {
-   
-
-    verifyToken();
-  }, []);
 
   const handleAddClickedDocuments = async () => {
     try {
@@ -118,12 +131,16 @@ const [content, setContent] = useState("");
   };
 
   return (
-    <div>
-      <div
+    <>
+
+      <LogOutBut/>
+    <div className="container" style={{ height: "400px" }} ref={wrapperRef}>
+      {/* <div
         id={`editor`}
         style={{ height: "400px", border: "2px solid purple" }}
-      />
+      /> */}
     </div>
+    </>
   );
 };
 
