@@ -6,21 +6,25 @@ import shareDBConnection from "../connections/shareDBConn";
 import QuillCursors from "quill-cursors";
 import { useCookies } from 'react-cookie';
 import { useMutation } from '@apollo/client';
-import { ADD_CLICKED_DOCUMENTS } from "../queries/Document";
+import { ADD_CLICKED_DOCUMENTS,CHANGE_DOCUMENT_TITLE } from "../queries/Document";
 import{useSelector} from 'react-redux';
 import LogOutBut from "./LogOutBut";
+// import html2pdf from "html2pdf"
+import { saveAs } from 'file-saver';
+import { pdfExporter } from 'quill-to-pdf';
+
 
 const QuillSetup = () => {
-
-
+  const [title, setTitle] = useState("Untitled");
   const { docId } = useParams();
-    const userId = useSelector((state) => state.auth.userId);
+  const userId = useSelector((state) => state.auth.userId);
   const navigate=useNavigate();
   const [cookies, setCookie] = useCookies(['authToken']);
   const doc = shareDBConnection.get("collaborations", docId);
   const presence = shareDBConnection.getDocPresence("collaborations", docId);
   Quill.register("modules/cursors", QuillCursors);
   const [addClickedDoc] = useMutation(ADD_CLICKED_DOCUMENTS);
+  const [changeDocumentTitle]=useMutation(CHANGE_DOCUMENT_TITLE);
   const [content, setContent] = useState("");
   let quill;
   
@@ -40,16 +44,11 @@ const QuillSetup = () => {
     quill.setContents(doc.data);
   },[])
   const initializeQuill = useCallback(()=> {
-    // var quill = new Quill("#editor", {
-    //   theme: "snow",
-    //   modules: { cursors: true },
-    // });
     setContent(quill.root.innerHTML);
     const cursors = quill.getModule("cursors");
     cursors.createCursor("cursor", "Pranali", "pink");
     const localPresence = presence.create();
     quill.setContents(doc.data);
-    // localPresence.submit("online");
 
     quill.on("text-change", (delta, oldDelta, source) => {
       if (source === "user") {
@@ -130,10 +129,35 @@ const QuillSetup = () => {
     }
   };
 
+  const downloadDocumentAsPDF=async()=>{
+    const pdf=await pdfExporter.generatePdf(doc.data)
+    saveAs(pdf,'pdf-export.pdf')
+  }
+
+  const handleBlur = async () => {
+    const {data}=await changeDocumentTitle({
+      variables:{
+        title,
+        docId
+      }
+    })
+  };
+
+  const handleChange = (event) => {
+    setTitle(event.target.value);
+  };
+
   return (
     <>
 
       <LogOutBut/>
+      <button onClick={downloadDocumentAsPDF}>Download</button>
+      <input 
+        style={{border:"0.5px black"}}
+        value={title}
+        onBlur={handleBlur}
+        onChange={handleChange}
+      />
     <div className="container" style={{ height: "400px" }} ref={wrapperRef}>
       {/* <div
         id={`editor`}

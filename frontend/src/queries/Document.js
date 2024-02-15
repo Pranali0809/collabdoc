@@ -48,7 +48,15 @@ const ADD_CLICKED_DOCUMENTS = gql`
   }
 `;
 
+const CHANGE_DOCUMENT_TITLE=gql`
+  mutation($title:String!, $docId: String!){
+    changeDocumentTitle(title:$title, docId:$docId){
+      title
+    }
+  }
+`
 
 
 
-export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION,GET_DOCUMENTS,ADD_CLICKED_DOCUMENTS}
+
+export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION,GET_DOCUMENTS,ADD_CLICKED_DOCUMENTS,CHANGE_DOCUMENT_TITLE}

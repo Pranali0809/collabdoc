@@ -12,7 +12,6 @@ const documentSlice = createSlice({
     setDocumentId(state, action) {
       state.documentId = action.payload;
     }
-    
   },
 });
 

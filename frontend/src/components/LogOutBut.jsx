@@ -15,11 +15,11 @@ const LogOutBut = () => {
         navigate('/')
       };
   return (
-    <div class="bg-gray-800 p-4 flex items-center justify-between">
-    <div class="text-white">
+    <div className="bg-gray-800 p-4 flex items-center justify-between">
+    <div className="text-white">
         CollabDoc
     </div>
-    <button class="text-white px-4 py-2 border rounded hover:bg-gray-700" onClick={logout}>
+    <button className="text-white px-4 py-2 border rounded hover:bg-gray-700" onClick={logout}>
         Logout
     </button>
 </div>

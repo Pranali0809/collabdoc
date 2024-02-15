@@ -8,9 +8,8 @@ const Document = require("../../models/Document.js");
 const ShareDB = require("sharedb");
 const { getAuth } = require("firebase/auth");
 const pubsub = new PubSub();
-const shareDBMongo = require("sharedb-mongo");
 const dotenv = require("dotenv");
-const {ObjectId}=require("mongodb")
+
 
 dotenv.config();
 const backend = new ShareDB({
@@ -60,7 +59,6 @@ const everyResolver = {
           password: hashedPassword,
         });
         const result = await userMongoDB.save();
-        console.log(result);
         await context.res
           .cookie("authToken", token, {
             httpOnly: true,
@@ -130,30 +128,50 @@ const everyResolver = {
       verifyToken(context.req, context.res);
       try {
         const user = await User.findOneAndUpdate(
-          { uid: userId, associatedDocuments: { $ne: docId } },
+          { uid: userId },
           { $addToSet: { associatedDocuments: docId } },
           { new: true }
         );
         await user.save();
-        // const document = await User.findOneAndUpdate(
-        //   { _id: docId },
-        //   { $push: { associatedUsers: userId } }
-        // );
+        const document = await Document.findOneAndUpdate(
+          { _id: docId },
+          { $addToSet: { associatedUsers: userId } }
+        );
+        await document.save();
         return document;
       } catch (error) {
         console.log(error);
+      }
+    },
+    changeDocumentTitle: async (_, { title,docId }) => {
+      try {
+
+
+        const document = await Document.findOneAndUpdate(
+          { _id: docId },
+          { title: title },
+          { new: true }
+        );
+        return document;
+      } catch (error) {
+        throw new Error(`Failed to update document title: ${error.message}`);
       }
     },
     updateDocument: (_parent, args) => {
       const _id = args.documentId;
       const content = args.content;
       pubsub.publish("DOCUMENT_CHANGED", { documentChanged: { _id, content } });
-      console.log("inside update doc res");
       return { _id: _id, content: content };
     },
     getDocuments: async (_, { userId }, context) => {
       try {
-        const documents = await Document.find({ associatedUsers: userId });
+        const user = await User.find({ uid: userId });
+
+        const associatedDocumentIds = user[0].associatedDocuments;
+
+
+        const documents = await Document.find({ _id: { $in: associatedDocumentIds } });
+
         return documents;
       } catch (error) {
         console.log(error);
