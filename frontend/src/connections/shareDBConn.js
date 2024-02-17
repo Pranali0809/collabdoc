@@ -3,7 +3,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
 
 ShareDB.types.register(require('rich-text').type);
 
-const socket = new ReconnectingWebSocket("ws://localhost:4200/graphql");
+const socket = new ReconnectingWebSocket("wss://collab-doc-obej.onrender.com/graphql");
 const createWebSocketConnection = () => {
   socket.addEventListener('error', (event) => {
     console.error('WebSocket error:', event);

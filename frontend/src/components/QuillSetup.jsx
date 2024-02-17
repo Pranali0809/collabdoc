@@ -6,16 +6,17 @@ import shareDBConnection from "../connections/shareDBConn";
 import QuillCursors from "quill-cursors";
 import { useCookies } from 'react-cookie';
 import { useMutation } from '@apollo/client';
-import { ADD_CLICKED_DOCUMENTS,CHANGE_DOCUMENT_TITLE } from "../queries/Document";
-import{useSelector} from 'react-redux';
+import { ADD_CLICKED_DOCUMENTS,CHANGE_DOCUMENT_TITLE,GET_DOCUMENT } from "../queries/Document";
+import {useSelector} from 'react-redux';
 import LogOutBut from "./LogOutBut";
-// import html2pdf from "html2pdf"
 import { saveAs } from 'file-saver';
 import { pdfExporter } from 'quill-to-pdf';
+import './QuillSetup.css'
+
 
 
 const QuillSetup = () => {
-  const [title, setTitle] = useState("Untitled");
+  
   const { docId } = useParams();
   const userId = useSelector((state) => state.auth.userId);
   const navigate=useNavigate();
@@ -26,16 +27,20 @@ const QuillSetup = () => {
   const [addClickedDoc] = useMutation(ADD_CLICKED_DOCUMENTS);
   const [changeDocumentTitle]=useMutation(CHANGE_DOCUMENT_TITLE);
   const [content, setContent] = useState("");
+  const [getDocument]=useMutation(GET_DOCUMENT)
+  const [title, setTitle] = useState("Untitled");
   let quill;
   
   const wrapperRef=useCallback(wrapper=>{
+    getDocumentTitle();
+
     verifyToken();
     if(wrapper==null)return
     wrapper.innerHTML=""
     const editor=document.createElement("div")
-    editor.style.height = "100%";
-    editor.style.border = "2px solid purple";
-    editor.style.width = "100%";
+    // editor.style.height = "100%";
+    // editor.style.border = "2px solid purple";
+    // editor.style.width = "100%";
     wrapper.append(editor)
     quill = new Quill(editor, {
       theme: "snow",
@@ -71,7 +76,7 @@ const QuillSetup = () => {
     presence.subscribe();
 
     presence.on("receive", (id, range) => {
-      console.log("sdf");
+      console.log(range);
       if (range === null) {
         console.log("remote left");
         // The remote client is no longer present in the document
@@ -79,7 +84,9 @@ const QuillSetup = () => {
         // Handle the new value by updating UI, etc.
 
         var name = (range && range.name) || "Anonymous";
-        cursors.createCursor(id, name, "green");
+        // Generate a random color
+        var randomHexColor = randomColor();
+        cursors.createCursor(id, name, randomHexColor); // Pass the random color
         cursors.moveCursor(id, range);
       }
     });
@@ -110,7 +117,20 @@ const QuillSetup = () => {
     }
   }
     
-
+  const getDocumentTitle=async()=>{
+    try{
+      const{data}=await getDocument({
+        variables:{
+          docId
+        }
+      }
+      )
+      setTitle(data.getDocument.title);
+    }
+    catch(error){
+      console.log(error);
+    }
+  }
 
 
   const verifyToken = () => {
@@ -135,6 +155,7 @@ const QuillSetup = () => {
   }
 
   const handleBlur = async () => {
+
     const {data}=await changeDocumentTitle({
       variables:{
         title,
@@ -151,19 +172,18 @@ const QuillSetup = () => {
     <>
 
       <LogOutBut/>
-      <button onClick={downloadDocumentAsPDF}>Download</button>
-      <input 
-        style={{border:"0.5px black"}}
-        value={title}
-        onBlur={handleBlur}
-        onChange={handleChange}
-      />
-    <div className="container" style={{ height: "400px" }} ref={wrapperRef}>
-      {/* <div
-        id={`editor`}
-        style={{ height: "400px", border: "2px solid purple" }}
-      /> */}
-    </div>
+      <div className="flex items-center justify-center p-4 flex-grow">
+  <input 
+    className="border border-black p-2 mr-10"
+    value={title}
+    onBlur={handleBlur}
+    onChange={handleChange}
+  />
+  <button className="text-black px-4 py-2 border rounded hover:bg-gray-700 ml-10" onClick={downloadDocumentAsPDF}>Download</button>
+</div>
+      <div className="container"  ref={wrapperRef}>
+
+      </div>
     </>
   );
 };

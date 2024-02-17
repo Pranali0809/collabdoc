@@ -11,7 +11,7 @@ import {ApolloClient, InMemoryCache,ApolloProvider,createHttpLink } from '@apoll
 
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4200/graphql',
+  uri: 'https://collab-doc-obej.onrender.com/graphql',
   credentials: 'include',
 });
 

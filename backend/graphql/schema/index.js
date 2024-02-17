@@ -38,6 +38,7 @@ const typeDefs=gql`
         getDocuments(userId: String!): [Document]!
         addClickedDocuments(userId: String!, docId: String!): Document!
         changeDocumentTitle(title:String!,docId:String!):Document!
+        getDocument(docId:String!):Document!
     }
 
     

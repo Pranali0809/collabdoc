@@ -177,6 +177,15 @@ const everyResolver = {
         console.log(error);
       }
     },
+    getDocument:async(_,{docId},context)=>{
+      try{
+        const result=await Document.findOne({_id:docId});
+        return result;
+      }
+      catch(error){
+        console.log(error);
+      }
+    },
   },
   Subscription: {
     documentChanged: {

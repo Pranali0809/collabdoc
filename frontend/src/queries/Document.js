@@ -55,8 +55,18 @@ const CHANGE_DOCUMENT_TITLE=gql`
     }
   }
 `
+const GET_DOCUMENT=gql`
+  mutation($docId:String!){
+    getDocument(docId:$docId){
+      _id
+      title
+      owner
+      content
+      associatedUsers
+    }
+  }
+`
 
 
 
-
-export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION,GET_DOCUMENTS,ADD_CLICKED_DOCUMENTS,CHANGE_DOCUMENT_TITLE}
+export {CREATE_DOCUMENT,DOCUMENT_CHANGED_SUBSCRIPTION,GET_DOCUMENTS,ADD_CLICKED_DOCUMENTS,CHANGE_DOCUMENT_TITLE,GET_DOCUMENT}
